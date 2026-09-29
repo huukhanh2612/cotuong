@@ -40,7 +40,7 @@ export default function Lobby({profile,initialMode='casual',onMatch,onBack}){
       <h2>Đang tìm đối thủ…</h2>
       <p className="muted">{MODES[mode]}{mode==='khi'?` • cược ${fmt(bet)} Khí`:''}{mode==='ranked'?` • Rank ${profile.rating} (${tierOf(profile.rating)})`:''}</p>
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
-      <p className="hint">Giữ trang này mở. Khi có người cùng chế độ, ván đấu sẽ tự bắt đầu. Nếu sau {BOT_WAIT_SECONDS} giây chưa có người, bạn sẽ được ghép với bot (cùng mức cược).</p>
+      <p className="hint">Giữ trang này mở. Khi có người cùng chế độ, ván đấu sẽ tự bắt đầu.</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
     </section></main>;
 
