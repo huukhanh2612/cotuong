@@ -3,4 +3,4 @@
 // Bot dùng lại AI trong engine.js: level 1 = yếu, 2 = vừa, 3 = mạnh (chậm hơn, có thể giật trên điện thoại cũ).
 export const BOT_LEVEL=3;
 export const BOT_WAIT_SECONDS=8;                                   // chỉ dùng để hiện thông báo, phải khớp với schema.sql
-export const botDelay=()=>700+Math.floor(Math.random()*1300);      // bot "suy nghĩ" 0.7–2 giây cho giống người
+export const botDelay=()=>500+Math.floor(Math.random()*1300);      // bot "suy nghĩ" 0.7–2 giây cho giống người
