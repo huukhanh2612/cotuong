@@ -1,4 +1,4 @@
-name: Deploy Cờ Tướng to GitHub Pages
+name: Triển khai Cờ Tướng lên GitHub Pages
 
 on:
   push:
@@ -43,6 +43,15 @@ jobs:
         with:
           path: ./dist
 
-      - name: Deploy
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
