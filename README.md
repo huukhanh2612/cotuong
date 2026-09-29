@@ -8,6 +8,17 @@
 
 > **Nâng cấp từ bản cũ:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu cũ), rồi `npm install` và `npm run dev`. Không có thư viện mới cần cài thêm.
 
+## Ghép trận với bot (khi ít người chơi)
+> **Nâng cấp:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu), rồi `npm run dev`. Không có thư viện mới.
+
+- Ở **mọi chế độ ghép trận** (Đấu thường, Rank, Luyện Khí): nếu sau **8 giây** chưa có người chơi cùng chế độ và cùng mức cược thì server ghép thẳng bạn với **1 bot**. Có người thật trong hàng chờ thì luôn ưu tiên ghép người thật.
+- **Mức cược của bot bằng mức cược của bạn.** Luyện Khí: chỉ cọc Khí của người chơi; thắng nhận lời đúng bằng mức cược (có nhân thẻ Khí), thua mất cọc, hòa hoàn cọc. Rank: điểm Rank của bot được gán quanh điểm của bạn (±40) nên Elo thay đổi bình thường.
+- Bot có tên bắt đầu bằng 🤖 và ghi rõ **Bot** ở khung người chơi để người chơi biết mình đang đấu máy. Bot không kết bạn được, không nằm trong Quản trị, không lên bảng xếp hạng.
+- 10 bot được tạo tự động khi chạy `schema.sql` (tài khoản Auth không mật khẩu, `profiles.is_bot=true`). Muốn đổi tên/số lượng bot: sửa mảng `names` trong mục *TÀI KHOẢN BOT* rồi chạy lại.
+- **Bot đi quân thế nào:** trình duyệt của người chơi tính nước bằng AI trong `engine.js` rồi gửi lên hàm `bot_move`. Bot nghĩ 0,7–2 giây mỗi nước. Chỉnh độ mạnh ở `BOT_LEVEL` trong `src/bot.js` (1 yếu, 2 vừa, 3 mạnh nhưng chậm). Bot không bị xử thua vì hết giờ; nếu người chơi rời trang lúc tới lượt bot thì ván chờ, quay lại là bot đi tiếp.
+- **Phần thưởng khi đấu bot** (mặc định để chống cày): ván Rank với bot vẫn đổi Elo nhưng **không nhận Thy Mây, không đổi chuỗi thắng**; ván Luyện Khí với bot vẫn ăn/mất Khí nhưng **không tính bảng xếp hạng tuần**. Muốn tính như ván thường, đặt `bot_full_rewards` thành `true` trong hàm `_settle`.
+- Đổi số giây chờ: hằng số `bot_wait_seconds` trong hàm `find_match` (schema.sql) **và** `BOT_WAIT_SECONDS` trong `src/bot.js` (chỉ để hiện thông báo).
+
 ## Giai đoạn 5 — ID, bạn bè, phòng riêng
 > **Nâng cấp từ giai đoạn 4:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu; tài khoản cũ được cấp ID tự động), rồi `npm install` và `npm run dev`. Không có thư viện mới.
 
@@ -148,3 +159,4 @@ Cấp độ tính từ Khí hiện có nên thua cược thì có thể tụt b�
 - Server kiểm tra lượt đi, thứ tự, hết giờ và tính điểm, **nhưng chưa kiểm tra luật đi quân** (việc đó do client). Người dùng rành kỹ thuật có thể gửi nước đi sai luật. Muốn chặt hơn: đưa `engine.js` vào Supabase Edge Function để xác thực từng nước.
 - Bên vừa đi nước cuối tự báo chiếu bí/hòa. Nếu bên đó thoát ngay, ván sẽ kết thúc bằng hết giờ.
 - Người chơi hết Khí (dưới 2) sẽ không vào được Luyện Khí; vẫn chơi được đấu thường và Rank.
+- **Bot chưa được server kiểm tra luật cờ:** nước đi của bot do trình duyệt người chơi gửi lên (giống cách server hiện tin nước đi của người chơi). Người rành kỹ thuật có thể gọi `bot_move` để điều khiển bot thua và cày Khí. Muốn chặn hẳn cần chuyển việc tính nước bot sang Supabase Edge Function (chạy `engine.js` phía server).
