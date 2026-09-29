@@ -8,17 +8,6 @@
 
 > **Nâng cấp từ bản cũ:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu cũ), rồi `npm install` và `npm run dev`. Không có thư viện mới cần cài thêm.
 
-## Ghép trận với bot (khi ít người chơi)
-> **Nâng cấp:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu), rồi `npm run dev`. Không có thư viện mới.
-
-- Ở **mọi chế độ ghép trận** (Đấu thường, Rank, Luyện Khí): nếu sau **8 giây** chưa có người chơi cùng chế độ và cùng mức cược thì server ghép thẳng bạn với **1 bot**. Có người thật trong hàng chờ thì luôn ưu tiên ghép người thật.
-- **Mức cược của bot bằng mức cược của bạn.** Luyện Khí: chỉ cọc Khí của người chơi; thắng nhận lời đúng bằng mức cược (có nhân thẻ Khí), thua mất cọc, hòa hoàn cọc. Rank: điểm Rank của bot được gán quanh điểm của bạn (±40) nên Elo thay đổi bình thường.
-- Bot có tên bắt đầu bằng 🤖 và ghi rõ **Bot** ở khung người chơi để người chơi biết mình đang đấu máy. Bot không kết bạn được, không nằm trong Quản trị, không lên bảng xếp hạng.
-- 10 bot được tạo tự động khi chạy `schema.sql` (tài khoản Auth không mật khẩu, `profiles.is_bot=true`). Muốn đổi tên/số lượng bot: sửa mảng `names` trong mục *TÀI KHOẢN BOT* rồi chạy lại.
-- **Bot đi quân thế nào:** trình duyệt của người chơi tính nước bằng AI trong `engine.js` rồi gửi lên hàm `bot_move`. Bot nghĩ 0,7–2 giây mỗi nước. Chỉnh độ mạnh ở `BOT_LEVEL` trong `src/bot.js` (1 yếu, 2 vừa, 3 mạnh nhưng chậm). Bot không bị xử thua vì hết giờ; nếu người chơi rời trang lúc tới lượt bot thì ván chờ, quay lại là bot đi tiếp.
-- **Phần thưởng khi đấu bot** (mặc định để chống cày): ván Rank với bot vẫn đổi Elo nhưng **không nhận Thy Mây, không đổi chuỗi thắng**; ván Luyện Khí với bot vẫn ăn/mất Khí nhưng **không tính bảng xếp hạng tuần**. Muốn tính như ván thường, đặt `bot_full_rewards` thành `true` trong hàm `_settle`.
-- Đổi số giây chờ: hằng số `bot_wait_seconds` trong hàm `find_match` (schema.sql) **và** `BOT_WAIT_SECONDS` trong `src/bot.js` (chỉ để hiện thông báo).
-
 ## Giai đoạn 5 — ID, bạn bè, phòng riêng
 > **Nâng cấp từ giai đoạn 4:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu; tài khoản cũ được cấp ID tự động), rồi `npm install` và `npm run dev`. Không có thư viện mới.
 
@@ -63,6 +52,34 @@ Dữ liệu mới: bảng `friendships`, `rooms`; cột `profiles.player_code`, 
 - Bật/tắt nhanh bằng nút loa trên thanh trên cùng; chọn bản nhạc, chỉnh âm lượng nhạc và hiệu ứng riêng trong **Cài đặt**.
 - Trình duyệt chỉ cho phát tiếng sau lần chạm/bấm đầu tiên, nên nhạc sẽ bắt đầu ngay khi bạn chạm vào trang. Nhạc tự tạm dừng khi bạn chuyển sang thẻ/ứng dụng khác.
 - Muốn dùng file nhạc thật: mã nhạc nằm gọn trong `src/audio.js` (hàm `startTrack`), có thể thay bằng thẻ `<audio>`.
+
+## Tam đấu (3 người một bàn, cược Khí 500 / 1000 / 1500)
+**Vào chơi:** Trang chủ → **Tam đấu** → chọn mức cược (cần đủ Khí) → **Tìm 2 đối thủ**. Đủ 3 người cùng mức cược thì ván tự bắt đầu. Ghế Đỏ / Đen / Xanh được chia ngẫu nhiên và bàn tự xoay để quân của bạn luôn ở phía dưới.
+
+**Bàn cờ:** lưới 13×13. Đỏ ở dưới (đi lên), Đen ở trên (đi xuống), Xanh ở bên trái (đi sang phải), mỗi bên 16 quân xếp như cờ tướng thường. Lượt đi xoay vòng **Đỏ → Đen → Xanh**, bỏ qua người đã bị loại. Mỗi nước 120 giây.
+
+**Luật rút gọn:**
+- Quân đi như cờ tướng thường (xe, pháo, mã cản chân, tượng cản mắt và chỉ đi trong vùng nhà, sĩ và tướng trong cung). Tốt đi thẳng về phía trước, đi được ngang sau khi qua hàng thứ 5 của mình.
+- **Không có luật chiếu tướng.** Ai bị ăn tướng thì bị loại và toàn bộ quân của người đó rời bàn. Xin thua (bất cứ lúc nào) hoặc hết giờ cũng bị loại.
+- Người cuối cùng còn tướng thắng. Quá **450 nước** chưa phân thắng bại thì hòa.
+
+**Chia Khí** (mỗi người bị giữ cọc đúng mức cược lúc vào trận; tổng Khí không đổi, không có thẻ nhân):
+| Hạng | Nhận lại | Lời/lỗ |
+|---|---|---|
+| Nhất (người cuối còn tướng) | 2 × mức cược | **+ mức cược** |
+| Nhì (người bị loại thứ hai) | 1 × mức cược | 0 |
+| Ba (người bị loại đầu tiên) | 0 | **− mức cược** |
+| Hòa (quá 450 nước) | hoàn cược | 0 |
+
+Ví dụ cược 1.000: Nhất +1.000, Nhì 0, Ba −1.000. Trang Tam đấu có mục *Ván gần đây* ghi hạng và Khí ±.
+
+**Server và chống gian lận:** bàn cờ nằm trên server (bảng `tam_matches`), server tự phát hiện ăn tướng, chia hạng và chia Khí. Mỗi nước đi server kiểm tra đúng lượt, đúng quân của mình, không ăn quân mình, đúng *hình dạng* nước đi theo loại quân (xe/pháo đi thẳng, mã hình chữ L, tượng 2×2, sĩ chéo 1, tướng 1 ô, tốt không đi lùi). Việc chặn chân mã, mắt tượng, cung, sông và ngòi pháo do client kiểm tra (giống các chế độ khác), nên người cố tình sửa client vẫn có thể đi sai các luật cản này.
+
+**Chưa cộng bảng xếp hạng tuần:** Tam đấu hiện không tính vào bảng xếp hạng tuần (vì tài khoản phụ có thể "nhường" hạng cho nhau). Muốn bật, đổi `c_weekly` thành `true` trong hàm `_tam_settle`.
+
+**Muốn chỉnh:** thời gian mỗi nước (`c_move_seconds`), số nước tối đa (`c_max_ply`), cách chia hạng (`_tam_settle`), mức cược (`find_tam`), rồi sửa `src/tam.js` cho khớp. Mã mới: `src/tam.js` (luật, hình học), `src/TamBoard.jsx`, `src/TamLobby.jsx`, `src/TamGame.jsx`; SQL nằm ở phần *TAM ĐẤU* trong `supabase/schema.sql`. Đang trong ván Tam đấu thì không vào được ván 1 đấu 1 (và ngược lại).
+
+> **Nâng cấp:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu), rồi `npm install` và `npm run dev`. **Chưa kiểm tra:** Tam đấu chưa được chạy thử trên trình duyệt hay Supabase thật. Nếu SQL hoặc giao diện báo lỗi, gửi nguyên thông báo lỗi để sửa. Cần 3 tài khoản (3 trình duyệt/thiết bị) mới thử được một ván.
 
 ## Nạp Thy Mây (chuyển khoản, admin duyệt thủ công)
 **Người chơi:** Ví tài nguyên → **Nạp Thy Mây** (hoặc ô "Nạp Thy Mây" ở trang chủ). Chọn mức nạp → **Tạo lệnh nạp** → app hiện mã QR, số tài khoản và nội dung chuyển khoản `NAP<mã lệnh>` (có nút Chép). Chuyển khoản xong chờ admin duyệt; trang tự cập nhật mỗi 10 giây, duyệt xong Thy Mây vào ví ngay. Lệnh chờ duyệt có thể hủy; mỗi người tối đa **3 lệnh chờ** cùng lúc.
@@ -145,7 +162,7 @@ Cấp độ tính từ Khí hiện có nên thua cược thì có thể tụt b�
 - `src/engine.js` — luật cờ, AI, trạng thái ván (dùng chung offline và online)
 - `src/Board.jsx` — bàn cờ SVG (có lật bàn cho bên Đen)
 - `src/Lobby.jsx`, `src/OnlineGame.jsx`, `src/History.jsx` — ghép trận, ván online, lịch sử + xem lại
-- `src/Shop.jsx` (cửa hàng + kho đồ), `src/Wallet.jsx` (ví), `src/TopUp.jsx` + `src/bank.js` (nạp Thy Mây), `src/Admin.jsx` (quản trị)
+- `src/Shop.jsx` (cửa hàng + kho đồ), `src/Wallet.jsx` (ví), `src/TopUp.jsx` + `src/bank.js` (nạp Thy Mây), `src/Tam*.jsx` + `src/tam.js` (Tam đấu), `src/Admin.jsx` (quản trị)
 - `src/cosmetics.js`, `src/ui.jsx` — dữ liệu và thành phần hiển thị vật phẩm (avatar, khung, sân đấu)
 - `src/Leaderboard.jsx` — bảng xếp hạng tuần
 - `src/Friends.jsx`, `src/Rooms.jsx`, `src/social.js` — ID, bạn bè, phòng riêng
@@ -159,4 +176,3 @@ Cấp độ tính từ Khí hiện có nên thua cược thì có thể tụt b�
 - Server kiểm tra lượt đi, thứ tự, hết giờ và tính điểm, **nhưng chưa kiểm tra luật đi quân** (việc đó do client). Người dùng rành kỹ thuật có thể gửi nước đi sai luật. Muốn chặt hơn: đưa `engine.js` vào Supabase Edge Function để xác thực từng nước.
 - Bên vừa đi nước cuối tự báo chiếu bí/hòa. Nếu bên đó thoát ngay, ván sẽ kết thúc bằng hết giờ.
 - Người chơi hết Khí (dưới 2) sẽ không vào được Luyện Khí; vẫn chơi được đấu thường và Rank.
-- **Bot chưa được server kiểm tra luật cờ:** nước đi của bot do trình duyệt người chơi gửi lên (giống cách server hiện tin nước đi của người chơi). Người rành kỹ thuật có thể gọi `bot_move` để điều khiển bot thua và cày Khí. Muốn chặn hẳn cần chuyển việc tính nước bot sang Supabase Edge Function (chạy `engine.js` phía server).

@@ -258,3 +258,22 @@ select.numinput{cursor:pointer}
 .navbadge{position:absolute;top:4px;right:calc(50% - 22px);min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#d9412f;color:#fff;font:700 10px/16px 'Be Vietnam Pro',sans-serif;font-style:normal;text-align:center}
 @media(max-width:650px){.idbig{font-size:32px;letter-spacing:4px}.roomcode{font-size:38px;letter-spacing:7px}.frow .hmain{flex-basis:100%;order:3}}
 html[data-device="phone"] .bottomnav button{font-size:9px}
+
+/* ---- Tam đấu ---- */
+.bets.tam3{grid-template-columns:repeat(3,1fr)}
+.tampay{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
+.tampay div{border:1px solid #4b3a26;background:#1b1814;border-radius:9px;padding:9px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.tampay small{font-size:9px;letter-spacing:1.5px;color:#9e927d}.tampay b{font:600 20px 'Cormorant Garamond',serif;color:#e2d1af}.tampay b.up{color:#8fdc9c}.tampay b.down{color:#ff8f7d}
+.tamrules{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.65;color:#cdbfa6}.tamrules b{color:#e0b96d}
+.tamdots{display:flex;gap:10px;justify-content:center;margin:12px 0 4px}
+.tamdots span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px dashed #574329;color:#6d6047}
+.tamdots span.on{border:1px solid #e0b96d;color:#e0b96d;background:#33281a}
+.gamepage.tam .boardwrap{max-width:720px;margin:auto}
+.tamplayers{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.tamp{display:flex;align-items:center;gap:8px;border:1px solid #4b3a26;background:#1b1814;border-radius:9px;padding:8px;min-width:0}
+.tamp>div{display:flex;flex-direction:column;min-width:0}.tamp b{font-size:12px;display:flex;align-items:center;gap:5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.tamp small{font-size:10px;color:#a99b82}
+.tamp .dot{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.tamp.turn{background:#2a2114;box-shadow:0 0 0 1px #e0b96d66}.tamp.out{opacity:.5}
+.tamfinal{display:flex;flex-direction:column;gap:3px;font-size:12px;margin:8px 0 12px}
+@media(max-width:560px){.tamplayers{grid-template-columns:1fr}.tamp{padding:6px 8px}}

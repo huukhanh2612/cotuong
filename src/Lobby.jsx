@@ -2,7 +2,6 @@ import React,{useEffect,useRef,useState} from 'react';
 import {Swords,Trophy,Wind,Loader2} from 'lucide-react';
 import {sb} from './supabase.js';
 import {BETS,MODES,khiInfo,fmt,tierOf} from './khi.js';
-import {BOT_WAIT_SECONDS} from './bot.js';
 
 const INFO={
   casual:{icon:<Swords/>,text:'Ván giao hữu, không ảnh hưởng điểm Rank hay Khí.'},
@@ -27,9 +26,8 @@ export default function Lobby({profile,initialMode='casual',onMatch,onBack}){
       if(data){stop=true;onMatch(data);}
     };
     tick();
-    // Thăm dò 2 giây/lần + 1 lần nữa ngay sau mốc 8 giây để server ghép bot đúng lúc
-    const poll=setInterval(tick,2000),late=setTimeout(tick,BOT_WAIT_SECONDS*1000+300),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
-    return()=>{stop=true;clearInterval(poll);clearTimeout(late);clearInterval(clock);sb.rpc('cancel_queue').then(()=>{});};
+    const poll=setInterval(tick,3000),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
+    return()=>{stop=true;clearInterval(poll);clearInterval(clock);sb.rpc('cancel_queue').then(()=>{});};
   },[searching]);
 
   const start=()=>{setErr('');setSecs(0);setSearching(true);};

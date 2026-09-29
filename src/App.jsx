@@ -6,6 +6,8 @@ import History from './History.jsx';
 import Shop from './Shop.jsx';
 import Wallet from './Wallet.jsx';
 import TopUp from './TopUp.jsx';
+import TamLobby from './TamLobby.jsx';
+import TamGame from './TamGame.jsx';
 import Admin from './Admin.jsx';
 import Leaderboard from './Leaderboard.jsx';
 import Friends from './Friends.jsx';
@@ -23,7 +25,7 @@ const viErr=m=>/Invalid login/i.test(m)?'Sai email hoặc mật khẩu.':/alread
 
 function App(){
   const [page,setPage]=useState('login'),[session,setSession]=useState(null),[guest,setGuest]=useState(false),[profile,setProfile]=useState(null),[ready,setReady]=useState(!hasSupabase);
-  const [mode,setMode]=useState('human'),[lobbyMode,setLobbyMode]=useState('casual'),[matchId,setMatchId]=useState(null);
+  const [mode,setMode]=useState('human'),[lobbyMode,setLobbyMode]=useState('casual'),[matchId,setMatchId]=useState(null),[tamId,setTamId]=useState(null);
   const [authTab,setAuthTab]=useState('in'),[username,setUsername]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[authErr,setAuthErr]=useState(''),[authBusy,setAuthBusy]=useState(false);
   const ui=useUiPrefs(),aud=useAudio(),[showSettings,setShowSettings]=useState(false);
   const [social,setSocial]=useState({req:0,inv:[]}),[roomPreset,setRoomPreset]=useState(null),[roomKey,setRoomKey]=useState(0),[idCopied,setIdCopied]=useState(false);
@@ -55,7 +57,9 @@ function App(){
     (async()=>{
       await Promise.all([loadProfile(),loadCatalog()]);
       const {data}=await sb.from('matches').select('id').eq('status','playing').limit(1);
+      const {data:tm}=await sb.from('tam_matches').select('id').eq('status','playing').limit(1);
       if(data&&data.length){setMatchId(data[0].id);setPage('match');}
+      else if(tm&&tm.length){setTamId(tm[0].id);setPage('tam');}
       else setPage(p=>p==='login'?'home':p);
     })();
   },[ready,uid]);
@@ -78,17 +82,19 @@ function App(){
 
   // Nếu một phòng vừa bắt đầu ván (ví dụ bạn bè vào phòng của mình khi bạn đang ở trang khác) thì tự vào ván
   useEffect(()=>{
-    if(!hasSupabase||!uid||['login','match','game'].includes(page))return;
+    if(!hasSupabase||!uid||['login','match','game','tam'].includes(page))return;
     let stop=false;
     const t=setInterval(async()=>{
       const {data}=await sb.from('matches').select('id').eq('status','playing').limit(1);
-      if(!stop&&data&&data.length){setMatchId(data[0].id);setPage('match');}
+      if(!stop&&data&&data.length){setMatchId(data[0].id);setPage('match');return;}
+      const {data:tm}=await sb.from('tam_matches').select('id').eq('status','playing').limit(1);
+      if(!stop&&tm&&tm.length){setTamId(tm[0].id);setPage('tam');}
     },6000);
     return()=>{stop=true;clearInterval(t);};
   },[uid,page]);
 
   // Nhạc nền: sảnh dùng bản nhẹ, khi đang đấu cờ dùng bản trận (chi tiết trong audio.js)
-  useEffect(()=>{setScene(page==='match'||page==='game'?'game':'menu');},[page]);
+  useEffect(()=>{setScene(page==='match'||page==='game'||page==='tam'?'game':'menu');},[page]);
 
   const submitAuth=async()=>{
     setAuthErr('');setAuthBusy(true);
@@ -116,7 +122,7 @@ function App(){
   const games=profile?profile.wins+profile.losses+profile.draws:0;
   const rate=games?Math.round(profile.wins/games*100)+'%':'—';
 
-  const showNav=ui.device==='phone'&&online&&!['login','match','game'].includes(page);
+  const showNav=ui.device==='phone'&&online&&!['login','match','game','tam'].includes(page);
   const NAV=[['home','Trang chủ',<HomeIcon/>,()=>setPage('home')],['lobby','Đấu',<Swords/>,()=>openLobby(lobbyMode)],['friends','Bạn bè',<Users/>,()=>setPage('friends')],['rank','Xếp hạng',<Crown/>,()=>setPage('rank')],['shop','Cửa hàng',<Store/>,()=>openShop('shop')],['profile','Tôi',<UserRound/>,()=>setPage('profile')]];
 
   return <CatalogCtx.Provider value={catalogValue}><div className={"app"+(showNav?" hasnav":"")} onClickCapture={e=>{if(e.target.closest&&e.target.closest("button,.mode,.tab"))sfx.click();}}><header><div className="brand"><span className="seal">棋</span><div><b>CỜ TƯỚNG</b><small>ĐẠO • KHÍ • TU LUYỆN</small></div></div><div className="headright"><div className="music-control"><button className={"iconbtn "+(aud.musicOn?"music-on":"")} onClick={()=>setAudio({musicOn:!aud.musicOn})} title="Bật/tắt nhạc nền" aria-label="Bật/tắt nhạc nền">{aud.musicOn?<Volume2/>:<VolumeX/>}</button>
@@ -149,6 +155,8 @@ function App(){
       {[['casual','Đấu thường','Ghép trận giao hữu',<Swords/>],['ranked','Đấu Rank','Tranh điểm Rank (Elo)',<Trophy/>],['khi','Luyện Khí','Cược Khí, thắng nhận Khí',<Wind/>]].map(([m,t,s,ic])=>
         online?<button key={m} onClick={()=>openLobby(m)} className="mode"><span className="modeicon">{ic}</span><b>{t}</b><small>{s}</small><ChevronRight/></button>
         :<div key={m} className="mode disabled"><span className="modeicon">{ic}</span><b>{t}</b><small>Cần đăng nhập</small></div>)}
+      {online?<button onClick={()=>setPage('tamlobby')} className="mode"><span className="modeicon"><Users/></span><b>Tam đấu</b><small>3 người một bàn, cược Khí 500 - 1000 - 1500</small><ChevronRight/></button>
+        :<div className="mode disabled"><span className="modeicon"><Users/></span><b>Tam đấu</b><small>Cần đăng nhập</small></div>}
       {online?<button onClick={()=>setPage('rank')} className="mode"><span className="modeicon"><Crown/></span><b>Bảng xếp hạng tuần</b><small>Xếp theo điểm Khí trong tuần</small><ChevronRight/></button>
         :<div className="mode disabled"><span className="modeicon"><Crown/></span><b>Bảng xếp hạng tuần</b><small>Cần đăng nhập</small></div>}
       {online?<button onClick={()=>setPage('history')} className="mode"><span className="modeicon"><HistoryIcon/></span><b>Lịch sử trận đấu</b><small>Xem lại các ván đã đấu</small><ChevronRight/></button>
@@ -174,6 +182,8 @@ function App(){
   :page==='friends'?<Friends profile={profile} onBack={()=>setPage('home')} onInvite={f=>openRooms({invite:f.id,inviteName:f.username})} onJoinCode={c=>openRooms({code:c})}/>
   :page==='rooms'?<Rooms key={roomKey} profile={profile} preset={roomPreset} onBack={()=>setPage('home')} onMatch={id=>{setMatchId(id);setPage('match');}}/>
   :page==='lobby'?<Lobby profile={profile} initialMode={lobbyMode} onBack={()=>setPage('home')} onMatch={id=>{setMatchId(id);setPage('match');}}/>
+  :page==='tamlobby'?<TamLobby profile={profile} onBack={()=>setPage('home')} onMatch={id=>{setTamId(id);setPage('tam');}}/>
+  :page==='tam'?<TamGame key={tamId} matchId={tamId} userId={uid} onExit={()=>{loadProfile();setPage('home');}} onAgain={()=>{loadProfile();setPage('tamlobby');}}/>
   :page==='match'?<OnlineGame key={matchId} matchId={matchId} userId={uid} onExit={()=>setPage('home')} onHistory={()=>setPage('history')}/>
   :page==='history'?<History equipped={profile?.equipped} onBack={()=>setPage('home')}/>
   :page==='shop'?<Shop key={shopTab} profile={profile} refresh={loadProfile} initialTab={shopTab} onBack={()=>setPage('home')} goWallet={()=>setPage('wallet')}/>
