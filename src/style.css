@@ -1,0 +1,260 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+:root{font-family:'Be Vietnam Pro',sans-serif;color:#eee9dc;background:#11100e;font-synthesis:none}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#38291c 0,#17130f 42%,#0e0e0d 100%);min-height:100vh}button,input{font:inherit}.app{min-height:100vh;display:flex;flex-direction:column}header{height:72px;padding:0 max(5vw,22px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #443523;background:#11100eea}.brand,.headright,.profile{display:flex;align-items:center;gap:12px}.brand b{letter-spacing:3px;font-family:'Cormorant Garamond';font-size:22px;color:#e7c47d}.brand small{display:block;font-size:9px;letter-spacing:2px;color:#958875}.seal{width:38px;height:38px;border:1px solid #ba8d43;color:#e3bb68;display:grid;place-items:center;font-size:23px}.iconbtn,.profile,.back{background:none;border:0;color:#d7c9ac;cursor:pointer}.iconbtn{padding:9px;border:1px solid #54442e;border-radius:9px;display:grid;place-items:center}.iconbtn svg{width:18px}.profile{border:1px solid #54442e;border-radius:30px;padding:5px 12px 5px 5px;font-size:12px}.avatar{width:30px;height:30px;border-radius:50%;background:#7d2922;color:#f4dba2;display:grid;place-items:center;font-weight:700;font-size:12px}.avatar.red{background:#8d3027}.content{width:min(1000px,92%);margin:42px auto;flex:1}.hero{border:1px solid #654b2b;background:linear-gradient(110deg,#211a13,#171411 70%);border-radius:16px;padding:36px 42px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative}.eyebrow{font-size:10px;letter-spacing:3px;color:#c49a52;font-weight:700}.hero h1,.loginart h1{font:600 clamp(32px,5vw,52px)/1.05 'Cormorant Garamond',serif;margin:14px 0;color:#f0e6d1}.hero em,.loginart em{font-style:normal;color:#d9ae62}.hero p{color:#b6aa96;font-size:13px;margin:0 0 22px}.hero-symbol{font:150px 'Cormorant Garamond';color:#a37a3a;opacity:.25;margin-right:7%;text-shadow:0 0 50px #b68c42}.primary{display:inline-flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(110deg,#b88a3c,#e1bd70);border:0;border-radius:7px;padding:12px 18px;color:#21170b;font-weight:700;font-size:12px;cursor:pointer}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0 30px}.stats>div{border:1px solid #3e3427;background:#181613;border-radius:10px;padding:15px 18px;display:flex;flex-direction:column;gap:5px}.stats small{font-size:9px;letter-spacing:1.4px;color:#a99b82}.stats b{font:600 23px 'Cormorant Garamond';color:#e0b96d}.stats span{font-size:10px;color:#827968}.sectiontitle{font:600 24px 'Cormorant Garamond';margin:0 0 14px}.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.mode{position:relative;display:flex;align-items:center;gap:13px;text-align:left;padding:16px;border:1px solid #4b3a26;border-radius:10px;background:#1b1814;color:#eee5d4;cursor:pointer;min-height:78px}.mode>b{font-size:13px}.mode small{display:block;color:#938875;font-size:10px;position:absolute;left:66px;top:48px}.mode>svg{margin-left:auto;width:16px;color:#ae8950}.modeicon{width:36px;height:36px;display:grid;place-items:center;color:#d5aa60;background:#31271b;border-radius:8px}.modeicon svg{width:19px}.mode.disabled{opacity:.55;cursor:not-allowed}.soon{margin-left:auto;font-size:8px;letter-spacing:1px;color:#b99b68}.login{width:min(900px,92%);margin:auto;flex:1;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:70px;padding:50px 0}.loginart{padding:35px}.moon{font-size:66px;color:#c59a51;opacity:.85}.loginart h1{font-size:64px}.loginart p{color:#a99b85;font-size:13px}.loginbox{border:1px solid #51402b;border-radius:14px;padding:30px;background:#191713}.loginbox h2{font:600 32px 'Cormorant Garamond';margin:8px 0}.muted{color:#a99f8e;font-size:12px}.loginbox label{display:block;color:#d5c6a9;font-size:11px;margin:19px 0 7px}.loginbox input{width:100%;padding:12px;border:1px solid #4b4031;border-radius:7px;background:#100f0d;color:#f4ead8;outline:none}.loginbox input:focus{border-color:#b68a43}.wide{width:100%;margin-top:23px}.hint{font-size:10px;color:#887e6c;line-height:1.6}.gamepage{width:min(680px,96%);margin:25px auto;flex:1}.gamehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.gamehead>div{text-align:center}.gamehead b{display:block;font-size:13px}.gamehead small{display:block;font-size:10px;color:#c8a15e;margin-top:4px}.back{font-size:12px;color:#c7a365}.boardwrap{background:#1a1712;border:1px solid #554127;border-radius:12px;padding:15px}.player{display:flex;align-items:center;gap:9px;padding:5px 2px 12px}.player b{font-size:11px;display:block}.player small{font-size:9px;color:#9e927d}.board{position:relative;width:min(100%,500px);margin:auto;background:#d9b77b;padding:7px;border:3px solid #9d703a;box-shadow:0 5px 20px #0008}.gridlines{position:relative;z-index:1}.rankline{display:grid;grid-template-columns:repeat(9,1fr);height:calc(min(88vw,480px)/9);border-bottom:1px solid #65451f}.rankline:last-child{border-bottom:0}.cell{position:relative;border:0;border-right:1px solid #65451f;background:transparent;display:grid;place-items:center;padding:0;min-width:0;cursor:pointer}.cell:last-child{border-right:0}.rankline:nth-child(5){border-bottom:0}.rankline:nth-child(6){border-top:0}.piece{width:78%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font:700 clamp(17px,4.3vw,27px) 'Cormorant Garamond';background:#e9d4a6;border:2px solid currentColor;box-shadow:0 2px 4px #3e291e88;position:relative;z-index:2}.redpiece{color:#a52e25}.blackpiece{color:#29251e}.cell.selected:after{content:"";position:absolute;width:90%;height:90%;border:2px solid #f9e27c;border-radius:50%;z-index:3}.river{position:absolute;top:45%;left:0;right:0;text-align:center;color:#795329;font:italic 15px 'Cormorant Garamond';letter-spacing:6px;z-index:0;pointer-events:none}.gameactions{display:flex;gap:10px;justify-content:center;margin:16px}.secondary{display:inline-flex;align-items:center;gap:7px;border:1px solid #5a472d;background:#211d17;color:#e2d1af;padding:9px 13px;border-radius:7px;font-size:11px;cursor:pointer}.profilecard{text-align:center;margin:50px auto;padding:35px;border:1px solid #574329;border-radius:12px;background:#1a1712;max-width:400px}.avatar.big{width:66px;height:66px;margin:auto;font-size:24px}.profilecard h2{font:600 28px 'Cormorant Garamond';margin-bottom:4px}footer{border-top:1px solid #352c20;padding:17px max(5vw,22px);display:flex;justify-content:space-between;color:#716957;font-size:9px;letter-spacing:.5px}footer span{display:flex;align-items:center;gap:5px}@media(max-width:650px){header{height:62px;padding:0 14px}.brand b{font-size:18px}.profile{font-size:0}.profile svg{font-size:initial}.content{margin:22px auto}.hero{padding:25px 22px}.hero-symbol{font-size:100px;margin-right:0}.stats{gap:7px}.stats>div{padding:12px 9px}.stats b{font-size:19px}.stats span{font-size:9px}.modes{grid-template-columns:1fr}.login{grid-template-columns:1fr;gap:15px;padding:25px 0}.loginart{padding:15px 25px 0}.loginart h1{font-size:44px;margin:5px 0}.moon{font-size:40px}.loginart p{margin:5px}.loginbox{padding:23px}.gamepage{margin:15px auto}.boardwrap{padding:8px}.board{padding:4px}.rankline{height:calc(min(88vw,480px)/9)}.piece{border-width:1.5px}footer{padding:13px;gap:10px;font-size:8px}}
+/* Nâng cấp bàn cờ: gỗ trầm, vân gỗ và quân cờ kiểu cổ */
+.music-control{display:flex;align-items:center;gap:8px}.music-control input{width:72px;accent-color:#c99a4b}.music-on{border-color:#c99a4b;color:#e7bd70}
+.board{background-color:#bd8950;background-image:repeating-linear-gradient(3deg,rgba(77,39,13,.10) 0px,rgba(77,39,13,.10) 1px,transparent 2px,transparent 7px),repeating-linear-gradient(91deg,rgba(255,226,165,.10) 0px,rgba(255,226,165,.10) 2px,transparent 3px,transparent 19px),linear-gradient(135deg,#e0b879,#b77c3e 48%,#d2a365);border:9px solid #69401f;outline:2px solid #d2a15a;box-shadow:inset 0 0 0 2px #e3b875,inset 0 0 18px #65391466,0 9px 20px #0009;border-radius:4px}
+.rankline{border-bottom:1px solid #57391d}
+.cell{border-right:1px solid #57391d}
+.piece{background:radial-gradient(circle at 32% 25%,#f9e8c2 0,#e8cf9b 52%,#c69c60 100%);box-shadow:inset 0 1px 2px #fff8,inset 0 -3px 5px #7b4c2080,0 3px 4px #432811aa;border:2px solid #80562e;text-shadow:0 1px 0 #fff7}
+.redpiece{color:#a1261d;border-color:#a36b3b}
+.blackpiece{color:#29251e;border-color:#77502a}
+.river{background:linear-gradient(90deg,transparent,#d2a466 10%,#d2a466 90%,transparent);color:#68431f;font-weight:700;letter-spacing:5px;text-shadow:0 1px #f0d5a0}
+@media(max-width:650px){.music-control input{width:50px}}
+/* Giai đoạn 2: bàn cờ SVG vân gỗ, khung gỗ, kết quả ván */
+.gamepage{width:min(640px,96%)}
+.boardwrap{background:linear-gradient(160deg,#2a1c10,#1a1208);border-color:#6a4a26}
+.boardframe{position:relative;width:100%;margin:auto;padding:10px;border-radius:8px;background:linear-gradient(135deg,#7a4b23,#4e2d12 55%,#6b4020);box-shadow:inset 0 0 0 2px #a97a3e,0 12px 28px #000a}
+.xqsvg{display:block;width:100%;height:auto;border-radius:3px;box-shadow:inset 0 0 12px #0006;user-select:none;-webkit-tap-highlight-color:transparent}
+.player{flex-wrap:wrap}.tray{display:flex;gap:2px;flex-wrap:wrap;margin-left:auto}
+.mini{width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f8e6bd,#c89a5c);display:grid;place-items:center;font:900 12px 'Noto Serif TC',serif;border:1px solid #6b4520}.mini.r{color:#b3251b}.mini.b{color:#1e1a14}
+.pulse{animation:pulse 1s ease-in-out infinite}@keyframes pulse{50%{opacity:.4}}
+.warn{color:#ff7a66!important;font-weight:700}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#000a;border-radius:8px;z-index:5;animation:fade .35s}
+@keyframes fade{from{opacity:0}}
+.resultcard{background:linear-gradient(160deg,#e3bd7c,#b98650);color:#2b1808;border:3px solid #5a3515;border-radius:12px;padding:26px 34px;text-align:center;box-shadow:0 10px 30px #000c}
+.resultcard h2{font:700 30px 'Cormorant Garamond',serif;margin:8px 0 2px}.resultcard p{font-size:12px;margin:0 0 16px}
+.seal.big{width:64px;height:64px;font:900 40px 'Noto Serif TC',serif;margin:auto;color:#a1261d;border-color:#a1261d}
+.levels{display:flex;gap:8px;justify-content:center;margin-top:14px}.secondary.on{border-color:#e0b96d;color:#f2d38f;background:#33281a}.secondary:disabled{opacity:.4;cursor:not-allowed}
+/* Giai đoạn 3: tài khoản, ghép trận, Khí, lịch sử */
+.stats.four{grid-template-columns:repeat(4,1fr)}
+.bar{height:6px;background:#2b2419;border-radius:3px;overflow:hidden;margin-top:4px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#b88a3c,#e1bd70)}
+.tabs{display:flex;gap:6px;margin:14px 0}.tab{flex:1;border:1px solid #4b3a26;background:#1b1814;color:#cdbb98;padding:10px 8px;border-radius:8px;font-size:12px;cursor:pointer}.tab.on{border-color:#e0b96d;color:#f2d38f;background:#33281a}
+.panel{border:1px solid #4b3a26;background:#191713;border-radius:12px;padding:22px}.modeinfo{display:flex;gap:12px;align-items:center}.modeinfo p{margin:0;font-size:13px;color:#cdbfa6}
+.lbl{display:block;color:#d5c6a9;font-size:11px;margin:16px 0 8px}
+.bets{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.bet{border:1px solid #54442e;background:#211d17;color:#e2d1af;border-radius:9px;padding:12px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}.bet b{font:600 20px 'Cormorant Garamond',serif}.bet small{font-size:9px;color:#9e927d}.bet.on{border-color:#e0b96d;background:#33281a;color:#f2d38f}.bet:disabled{opacity:.35;cursor:not-allowed}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.searchcard{text-align:center;margin:60px auto;max-width:420px;padding:36px;border:1px solid #574329;border-radius:14px;background:#1a1712}.searchcard h2{font:600 28px 'Cormorant Garamond',serif;margin:14px 0 4px}.timer{font:600 34px 'Cormorant Garamond',serif;color:#e0b96d;margin:14px 0}
+.spin{color:#d5aa60;animation:spin 1.2s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.clock{text-align:center;margin-top:12px;font-size:12px;color:#c8a15e}.clock.low{color:#ff7a66}.clock b{font-size:15px}
+.rowbtn{display:flex;gap:10px;justify-content:center}.darkbtn{background:#3a2610;color:#f2d38f;border-color:#5a3515}
+.hlist{display:flex;flex-direction:column;gap:8px}.hrow{display:flex;align-items:center;gap:14px;text-align:left;border:1px solid #4b3a26;background:#1b1814;color:#eee5d4;border-radius:10px;padding:12px 14px;cursor:pointer}
+.hmain{flex:1;min-width:0}.hmain b{display:block;font-size:13px}.hmain small,.hdelta small{display:block;font-size:10px;color:#938875;margin-top:3px}.hdelta{text-align:right;font-size:12px}
+.res{display:inline-block;min-width:46px;text-align:center;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px}.res.win{background:#1f3a24;color:#8fdc9c}.res.loss{background:#3d1f1b;color:#ff8f7d}.res.draw{background:#3a3320;color:#e6cf8a}
+.up{color:#8fdc9c}.down{color:#ff8f7d}
+code{background:#100f0d;padding:2px 5px;border-radius:4px;font-size:11px}
+@media(max-width:650px){.stats.four{grid-template-columns:repeat(2,1fr)}.bets{grid-template-columns:repeat(3,1fr)}.hrow{gap:8px;padding:10px}}
+
+/* Shop, Ví, Admin, vật phẩm trang trí */
+.stats.five{grid-template-columns:repeat(5,1fr)}
+.coinchip{display:inline-flex;align-items:center;gap:6px;border:1px solid #b88a3c;background:#2b2115;color:#f2d38f;border-radius:30px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.coinchip svg{color:#e1bd70}
+.avring{display:inline-flex;border-radius:50%;flex-shrink:0}
+.avring.ringpulse{animation:ringpulse 1.6s ease-in-out infinite}
+@keyframes ringpulse{50%{box-shadow:0 0 22px 4px var(--glow)}}
+.avimg{width:100%;height:100%;object-fit:cover;display:block}
+.fname{-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;font-weight:700}
+.namepreview{font:700 18px 'Be Vietnam Pro',sans-serif}
+.swatch{position:relative;width:100%;min-width:90px;border:2px solid;border-radius:6px;overflow:hidden}
+.swatch i{position:absolute;inset:9px;background-size:14px 14px;opacity:.75}
+.boostbadge{width:64px;height:64px;border-radius:14px;display:grid;place-items:center;align-content:center;background:linear-gradient(140deg,#5a3d12,#b88a3c);color:#fff3cf;border:2px solid #e1bd70;box-shadow:0 0 14px #b88a3c66}
+.boostbadge.khi{background:linear-gradient(140deg,#123c5a,#3c8fb8);border-color:#8fd4ff;box-shadow:0 0 14px #3c8fb866}
+.boostbadge b{font:700 24px 'Cormorant Garamond',serif;line-height:1}.boostbadge small{font-size:9px;letter-spacing:1.5px}
+.shophead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.tabs.wrap{flex-wrap:wrap}.tabs.wrap .tab{flex:1 1 auto}
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin:12px 0}
+.icard{border:1px solid #4b3a26;background:#191713;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center}
+.icard.on{border-color:#e0b96d;background:#241d13}
+.iprev{min-height:74px;width:100%;display:grid;place-items:center}
+.iname{font-size:13px}.idesc{font-size:10px;color:#938875;line-height:1.5;min-height:30px}
+.itag{font-size:10px;color:#e0b96d;background:#31271b;border-radius:20px;padding:2px 9px}
+.iprice{display:flex;align-items:center;gap:5px;font-size:13px;color:#e1bd70;font-weight:700;margin-top:4px}.ownedq{font-size:10px;color:#9e927d;font-weight:400;margin-left:6px}
+.icard .primary,.icard .secondary{width:100%;justify-content:center}
+.igroup{font:600 20px 'Cormorant Garamond',serif;margin:22px 0 6px;color:#e0b96d}
+.okmsg{color:#8fdc9c;font-weight:700;font-size:12px}
+.activeboosts{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.abadge{display:flex;align-items:center;gap:8px;border:1px solid #b88a3c;background:#2b2115;color:#f2d38f;border-radius:30px;padding:6px 12px;font-size:12px}.abadge b{font-variant-numeric:tabular-nums}
+.wallet3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.wcard{border:1px solid #3e3427;background:#181613;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:5px}.wcard svg{color:#c49a52;width:22px}
+.wcard small{font-size:9px;letter-spacing:1.4px;color:#a99b82}.wcard b{font:600 30px 'Cormorant Garamond',serif;color:#e0b96d}.wcard span{font-size:10px;color:#827968}
+.wcard.gold{border-color:#b88a3c;background:linear-gradient(140deg,#2b2115,#181613)}
+.hrow.static{cursor:default}
+.adminform label,.afield{display:block}
+.afield{margin:10px 0 0}.afield>span{display:block;font-size:11px;color:#d5c6a9;margin-bottom:5px}
+.adminform input:not([type=checkbox]):not([type=range]):not([type=color]),.adminform select,.addbar input,.addbar select{width:100%;padding:10px;border:1px solid #4b4031;border-radius:7px;background:#100f0d;color:#f4ead8;outline:none}
+.adminform input[type=color]{width:100%;height:38px;padding:2px;border:1px solid #4b4031;border-radius:7px;background:#100f0d;cursor:pointer}
+.adminform input[type=range]{width:100%}
+.formgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.check{display:flex;align-items:center;gap:8px;font-size:12px;color:#d5c6a9;margin-top:12px}
+.previewbox{border:1px dashed #5a472d;border-radius:10px;min-height:110px;display:grid;place-items:center;padding:14px;background:#12100d}
+.previewcol .boardframe{width:100%}
+.addbar{display:flex;gap:8px;margin:10px 0 14px}.addbar select{max-width:200px}.addbar .primary{white-space:nowrap}
+.aitem{gap:12px}.aprev{width:92px;min-height:60px;display:grid;place-items:center;flex-shrink:0}.aprev .boostbadge{transform:scale(.75)}
+.secondary.danger{border-color:#7a2e26;color:#ff8f7d}
+.adjrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}.adjrow b{min-width:64px;font-size:13px}.adjrow small{color:#938875;font-size:10px;min-width:90px}.adjrow input{flex:1;min-width:90px}
+@media(max-width:650px){.stats.five{grid-template-columns:repeat(2,1fr)}.wallet3{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}.igrid{grid-template-columns:repeat(2,1fr)}.coinchip{padding:6px 9px}.addbar{flex-wrap:wrap}}
+
+/* ===== Giai đoạn 4: bảng xếp hạng tuần, cài đặt, giao diện theo thiết bị ===== */
+.app{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+button,.mode,.tab,.xqsvg{touch-action:manipulation}
+.gamepage{overscroll-behavior-y:contain}
+.music-control{gap:6px}.music-control .iconbtn{width:38px;height:38px}
+main{zoom:1}
+html[data-scale="s"] main{zoom:.92}
+html[data-scale="l"] main{zoom:1.12}
+html[data-calm="on"] *{animation:none!important;transition:none!important}
+
+/* Bảng xếp hạng */
+.lbrow{gap:12px}.lbpos{width:30px;text-align:center;font:700 16px 'Cormorant Garamond',serif;color:#c8a15e;flex-shrink:0}
+.medal{font-size:22px;line-height:1}
+.lbrow.me{border-color:#e0b96d;background:#2a2114}
+.lbrow.top1{background:linear-gradient(100deg,#3a2c12,#1b1814 70%);border-color:#b88a3c}
+.lbrow.top2{background:linear-gradient(100deg,#2c2e33,#1b1814 70%);border-color:#8d939c}
+.lbrow.top3{background:linear-gradient(100deg,#35240f,#1b1814 70%);border-color:#a3693a}
+.lbrow .hdelta b{font:700 18px 'Cormorant Garamond',serif}
+.lbme{display:flex;justify-content:space-between;align-items:center;border:1px solid #b88a3c;background:#2b2115;border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13px;color:#f2d38f}
+.lbinfo{margin:10px 0 0}.lbrange{margin:10px 0 0}
+.lbgap{text-align:center;color:#6f6552;letter-spacing:4px;font-size:11px;padding:2px 0}
+.lbpage .hlist{margin-top:12px}
+
+/* Hộp cài đặt / chọn thiết bị */
+.modalback{position:fixed;inset:0;z-index:100;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto}
+.modalcard{width:min(560px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:#191713;border:1px solid #6a4a26;border-radius:14px;padding:22px;box-shadow:0 20px 50px #000c}
+.modalhead{display:flex;align-items:center;justify-content:space-between}
+.modaltitle{font:600 28px 'Cormorant Garamond',serif;margin:6px 0}
+.setgroup{display:flex;align-items:center;gap:7px;font:600 20px 'Cormorant Garamond',serif;color:#e0b96d;margin:22px 0 8px}
+.devgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.devcard{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;border:1px solid #54442e;background:#211d17;color:#eee5d4;border-radius:10px;padding:12px;cursor:pointer;min-height:104px}
+.devcard.on{border-color:#e0b96d;background:#33281a}
+.devcard b{font-size:13px}.devcard small{font-size:10px;color:#938875;line-height:1.5}
+.devicon{width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:#31271b;color:#d5aa60}.devicon svg{width:19px}
+.devcheck{position:absolute;right:10px;top:10px;color:#e0b96d}
+.seg{display:flex;gap:6px}.seg button{flex:1;border:1px solid #54442e;background:#211d17;color:#e2d1af;border-radius:8px;padding:10px 6px;cursor:pointer;font-size:12px}
+.seg button.on{border-color:#e0b96d;background:#33281a;color:#f2d38f}
+.setcheck{margin-top:14px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:#d5c6a9;padding:6px 0}
+.switch{position:relative;width:46px;height:26px;border-radius:20px;border:1px solid #54442e;background:#2a241b;cursor:pointer;flex-shrink:0;padding:0}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#9b8e75;transition:transform .18s,background .18s}
+.switch.on{background:#5a3d12;border-color:#c99a4b}.switch.on i{transform:translateX(20px);background:#f2d38f}
+.tracklist{display:flex;flex-direction:column;gap:6px}
+.trackrow{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #54442e;background:#211d17;color:#eee5d4;border-radius:9px;padding:10px 12px;cursor:pointer}
+.trackrow b{font-size:13px;min-width:78px}.trackrow small{flex:1;font-size:10px;color:#938875}.trackrow svg{color:#e0b96d}
+.trackrow.on{border-color:#e0b96d;background:#33281a}
+.slider{width:100%;accent-color:#c99a4b}
+
+/* Thanh điều hướng dưới (chỉ hiện ở giao diện điện thoại) */
+.bottomnav{display:none}
+.app.hasnav{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
+
+/* --- Máy tính bảng --- */
+html[data-device="tablet"] .content{width:min(900px,94%);margin:28px auto}
+html[data-device="tablet"] .gamepage{width:min(720px,96%)}
+html[data-device="tablet"] .primary,html[data-device="tablet"] .secondary,html[data-device="tablet"] .tab{min-height:42px}
+html[data-device="tablet"] .stats.five{grid-template-columns:repeat(3,1fr)}
+html[data-device="tablet"] .mode{min-height:84px}
+
+/* --- Điện thoại: full màn hình, nút to, dễ chạm bằng một tay --- */
+html[data-device="phone"] body{background:#0e0e0d}
+html[data-device="phone"] .app{max-width:520px;margin:0 auto;min-height:100dvh;background:radial-gradient(ellipse at 50% -20%,#38291c 0,#17130f 42%,#0e0e0d 100%);box-shadow:0 0 0 1px #2a2218}
+html[data-device="phone"] header{height:calc(56px + env(safe-area-inset-top));padding:env(safe-area-inset-top) 12px 0;position:sticky;top:0;z-index:30}
+html[data-device="phone"] .brand small{display:none}
+html[data-device="phone"] .brand b{font-size:17px;letter-spacing:2px}
+html[data-device="phone"] .seal{width:32px;height:32px;font-size:19px}
+html[data-device="phone"] .headright{gap:6px}
+html[data-device="phone"] .music-control .iconbtn{width:36px;height:36px;padding:0}
+html[data-device="phone"] .profile{font-size:0;padding:3px}
+html[data-device="phone"] .profile>svg{display:none}
+html[data-device="phone"] .coinchip{padding:6px 9px;font-size:11px}
+html[data-device="phone"] .content{width:calc(100% - 24px);margin:14px auto}
+html[data-device="phone"] .hero{padding:22px 18px}
+html[data-device="phone"] .hero-symbol{display:none}
+html[data-device="phone"] .hero h1{font-size:32px}
+html[data-device="phone"] .stats,html[data-device="phone"] .stats.four,html[data-device="phone"] .stats.five{grid-template-columns:repeat(2,1fr)}
+html[data-device="phone"] .stats.five>div:last-child{grid-column:1/-1}
+html[data-device="phone"] .modes{grid-template-columns:1fr}
+html[data-device="phone"] .mode{min-height:64px;padding:12px}
+html[data-device="phone"] .mode small{position:static;margin-top:2px}
+html[data-device="phone"] .mode>b{font-size:14px}
+html[data-device="phone"] .primary,html[data-device="phone"] .secondary,html[data-device="phone"] .tab,html[data-device="phone"] .bet{min-height:46px;font-size:13px}
+html[data-device="phone"] input,html[data-device="phone"] select{font-size:16px!important} /* tránh iOS tự phóng to khi gõ */
+html[data-device="phone"] .login{grid-template-columns:1fr;gap:12px;padding:16px 0;width:calc(100% - 24px)}
+html[data-device="phone"] .loginart{padding:10px 12px 0}.loginart h1{font-size:40px}
+html[data-device="phone"] .loginbox{padding:20px}
+html[data-device="phone"] .bets{grid-template-columns:repeat(3,1fr)}
+html[data-device="phone"] .igrid{grid-template-columns:repeat(2,1fr);gap:8px}
+html[data-device="phone"] .hrow{padding:10px}
+html[data-device="phone"] .lbrow{gap:8px}
+html[data-device="phone"] .lbrow .hmain small{font-size:9px}
+html[data-device="phone"] .wallet3,html[data-device="phone"] .formgrid,html[data-device="phone"] .row2,html[data-device="phone"] .row3{grid-template-columns:1fr}
+/* bàn cờ tràn màn hình */
+html[data-device="phone"] .gamepage{width:100%;margin:6px auto 0}
+html[data-device="phone"] .gamehead{padding:0 10px;margin-bottom:8px}
+html[data-device="phone"] .boardwrap{padding:6px;border-radius:0;border-left:0;border-right:0}
+html[data-device="phone"] .boardframe{padding:5px}
+html[data-device="phone"] .player{padding:4px 4px 8px}
+html[data-device="phone"] .gameactions{margin:10px;gap:8px}
+html[data-device="phone"] .gameactions .secondary{flex:1;justify-content:center}
+html[data-device="phone"] .resultcard{padding:20px 22px;max-width:92%}
+html[data-device="phone"] .hint{padding:0 12px}
+html[data-device="phone"] footer{display:none}
+html[data-device="phone"] .modalback{align-items:flex-end;padding:0}
+html[data-device="phone"] .modalcard{border-radius:16px 16px 0 0;width:100%;max-width:520px;max-height:92dvh;padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+html[data-device="phone"] .bottomnav{display:grid;grid-template-columns:repeat(6,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:520px;margin:0 auto;background:#11100ef5;border-top:1px solid #443523;padding:4px 4px calc(4px + env(safe-area-inset-bottom));backdrop-filter:blur(8px)}
+html[data-device="phone"] .bottomnav button{background:none;border:0;color:#9b8e75;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;min-height:52px;cursor:pointer;border-radius:8px}
+html[data-device="phone"] .bottomnav button svg{width:21px;height:21px}
+html[data-device="phone"] .bottomnav button.on{color:#f2d38f;background:#251d12}
+/* điện thoại xoay ngang: co bàn cờ theo chiều cao màn hình */
+@media (orientation:landscape) and (max-height:520px){
+  html[data-device="phone"] .app{max-width:none}
+  html[data-device="phone"] .gamepage{width:auto;max-width:none;padding:0 10px}
+  html[data-device="phone"] .boardframe{width:min(100%,calc((100dvh - 150px)*.9));margin:auto}
+  html[data-device="phone"] .bottomnav{max-width:none}
+}
+@media(max-width:380px){.devgrid{grid-template-columns:1fr}.devcard{min-height:0}}
+
+/* ---- Nạp Thy Mây ---- */
+.tuchips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+.tuchip{border:1px solid #4b3a26;background:#1b1814;color:#eee5d4;border-radius:10px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tuchip b{font:600 20px 'Cormorant Garamond',serif;color:#e0b96d}.tuchip small{font-size:10px;color:#938875}
+.tuchip.on{border-color:#e0b96d;background:#33281a}
+.tucustom label{display:block;font-size:11px;color:#d5c6a9;margin:12px 0 7px}
+.tucustom input{width:100%;padding:11px;border:1px solid #4b4031;border-radius:7px;background:#100f0d;color:#f4ead8;outline:none}
+.tusum{margin:12px 0 4px;font-size:13px;color:#cdbfa6}.tusum b{color:#e0b96d}
+.tuorder{display:flex;flex-direction:column}
+.tubox{border:1px solid #4b3a26;background:#15130f;border-radius:10px;padding:14px;margin-top:6px}
+.tugrid{display:grid;grid-template-columns:220px 1fr;gap:16px;margin:12px 0;align-items:start}
+.tuqr{width:100%;border-radius:10px;background:#fff}
+.tuinfo{display:flex;flex-direction:column;gap:8px}
+.tuline{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #3e3427;background:#181613;border-radius:8px;padding:8px 10px}
+.tuline span{display:flex;flex-direction:column;gap:2px;min-width:0}.tuline small{font-size:9px;letter-spacing:1px;color:#a99b82;text-transform:uppercase}.tuline b{font-size:13px;word-break:break-word}
+@media(max-width:650px){.tuchips{grid-template-columns:repeat(2,1fr)}.tugrid{grid-template-columns:1fr}.tuqr{max-width:260px;margin:auto}}
+
+
+/* ===== Giai đoạn 5: ID người chơi, bạn bè, phòng riêng ===== */
+.numinput{width:100%;padding:11px 12px;border:1px solid #4b4031;border-radius:8px;background:#100f0d;color:#eee5d4;font-size:14px}
+.numinput:focus{outline:none;border-color:#e0b96d}
+select.numinput{cursor:pointer}
+.codeinput{font:700 20px 'Cormorant Garamond',serif;letter-spacing:6px;text-transform:uppercase;text-align:center}
+.addbar .numinput{flex:1;min-width:0}
+.idcard{text-align:center}
+.idbig{font:700 40px 'Cormorant Garamond',serif;letter-spacing:6px;color:#e0b96d;margin:6px 0 2px}
+.idcopy{padding:3px 10px;font-size:11px;margin-left:6px;display:inline-flex;align-items:center;gap:4px}
+.frow{gap:10px;flex-wrap:wrap}
+.frow .hmain{min-width:140px}
+.frow .primary,.frow .secondary{padding:8px 12px;font-size:12px;display:inline-flex;align-items:center;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%;background:#5a5245;flex-shrink:0}
+.dot.on{background:#57d26f;box-shadow:0 0 8px #57d26faa}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{border:1px solid #54442e;background:#211d17;color:#e2d1af;border-radius:20px;padding:6px 14px;font-size:12px;cursor:pointer}
+.chip.on{border-color:#e0b96d;color:#f2d38f;background:#33281a}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+.rulebox{margin:16px 0 4px;padding:12px 14px;border:1px dashed #7a5d31;border-radius:10px;background:#1d1810;color:#dccfb3;font-size:12px;line-height:1.7}
+.rulebox small{color:#a99b82}
+.roomcode{font:700 46px 'Cormorant Garamond',serif;letter-spacing:10px;color:#e0b96d;margin:14px 0 10px;padding-left:10px}
+.roomwait .hint{margin:10px 0 0}.roomwait .danger{margin-top:16px}
+.invitebanner{display:flex;align-items:center;gap:10px;margin:10px auto 0;width:min(1100px,94%);padding:10px 14px;border:1px solid #b88a3c;border-radius:10px;background:linear-gradient(90deg,#3a2a12,#241b0e);color:#f2d38f;font-size:12px}
+.invitebanner svg{flex-shrink:0;color:#e1bd70}.invitebanner span{flex:1;min-width:0}
+.invitebanner .primary{padding:7px 14px;font-size:12px}
+.bottomnav button{position:relative}
+.navbadge{position:absolute;top:4px;right:calc(50% - 22px);min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:#d9412f;color:#fff;font:700 10px/16px 'Be Vietnam Pro',sans-serif;font-style:normal;text-align:center}
+@media(max-width:650px){.idbig{font-size:32px;letter-spacing:4px}.roomcode{font-size:38px;letter-spacing:7px}.frow .hmain{flex-basis:100%;order:3}}
+html[data-device="phone"] .bottomnav button{font-size:9px}
