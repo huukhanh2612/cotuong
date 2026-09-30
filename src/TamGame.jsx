@@ -12,7 +12,7 @@ import {frameStyle} from './cosmetics.js';
 const sign=n=>(n>0?'+':'')+fmt(n);
 
 export default function TamGame({matchId,userId,onExit,onAgain}){
-  const [m,setM]=useState(null),[who,setWho]=useState({}),[sel,setSel]=useState(null),[err,setErr]=useState(''),[now,setNow]=useState(Date.now()),[botRetry,setBotRetry]=useState(0);
+  const [m,setM]=useState(null),[who,setWho]=useState({}),[sel,setSel]=useState(null),[err,setErr]=useState(''),[now,setNow]=useState(Date.now()),[botRetry,setBotRetry]=useState(0),[botMsg,setBotMsg]=useState('');
   const aud=useAudio();
   const {byId}=useCatalog();
   const busy=useRef(false),lastClaim=useRef(0),prev=useRef(null),doneSnd=useRef(false);
@@ -76,13 +76,21 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
     if(!m||!board||m.status!=='playing'||!who.loaded||!who[m.players[m.turn]]?.is_bot)return;
     const ply=m.ply,turn=m.turn,places=m.places,bd=board;
     let dead=false;
+    setBotMsg('Bot đang nghĩ…');
     const t=setTimeout(async()=>{
-      const mv=botPickTam(bd,turn,places);
-      if(!mv||dead)return;
-      const {error}=await sb.rpc('tam_bot_move',{p_match:matchId,p_ply:ply,p_fx:mv[0][0],p_fy:mv[0][1],p_tx:mv[1][0],p_ty:mv[1][1]});
-      if(dead)return;
-      load();
-      if(error&&!/Lệch|lệch|Trận đã|Chưa đến lượt/.test(error.message))setTimeout(()=>setBotRetry(x=>x+1),2000);   // lỗi mạng: thử lại
+      try{
+        const mv=botPickTam(bd,turn,places);
+        if(!mv){setBotMsg('Bot không còn nước đi.');return;}
+        if(dead)return;
+        const {error}=await sb.rpc('tam_bot_move',{p_match:matchId,p_ply:ply,p_fx:mv[0][0],p_fy:mv[0][1],p_tx:mv[1][0],p_ty:mv[1][1]});
+        if(dead)return;
+        load();
+        if(error){
+          console.error('tam_bot_move lỗi:',error);
+          if(/Lệch|lệch|Trận đã|Chưa đến lượt/.test(error.message))setBotMsg('');   // người khác đã đi thay bot rồi
+          else{setBotMsg('Bot gặp lỗi: '+error.message+' (tự thử lại sau 2 giây)');setTimeout(()=>setBotRetry(x=>x+1),2000);}
+        }else setBotMsg('');
+      }catch(e){console.error('bot lỗi:',e);setBotMsg('Bot gặp lỗi: '+(e?.message||e));}
     },botDelay()+Math.floor(Math.random()*500));
     return()=>{dead=true;clearTimeout(t);};
   },[m?.ply,m?.turn,m?.status,who.loaded,matchId,botRetry]);
@@ -139,6 +147,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
     </div>
     {playing&&<div className={'clock '+(secs<=20&&m.turn===seat?'low':'')}>{myTurn?'Thời gian của bạn':`Thời gian của ${turnName}`}: <b>{Math.floor(secs/60)}:{String(secs%60).padStart(2,'0')}</b></div>}
     {err&&<p className="warn" style={{textAlign:'center'}}>{err}</p>}
+    {playing&&who.loaded&&who[m.players[m.turn]]?.is_bot&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <button className="secondary" onClick={()=>setBotRetry(x=>x+1)}>Gọi bot đi</button></p>}
     <div className="gameactions"><button className="secondary" onClick={resign} disabled={!playing||!alive}><Flag size={16}/> Xin thua</button></div>
     <p className="hint">Mỗi nước đi có 120 giây. Hết giờ sẽ bị loại. Không có luật chiếu tướng: ăn tướng là loại người đó. Nhất +{fmt(m.bet)} Khí, Nhì hòa vốn, Ba −{fmt(m.bet)} Khí.</p>
   </main>;

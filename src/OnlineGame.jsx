@@ -13,7 +13,7 @@ import {frameStyle} from './cosmetics.js';
 const sign=n=>(n>0?'+':'')+fmt(n);
 
 export default function OnlineGame({matchId,userId,onExit,onHistory}){
-  const [m,setM]=useState(null),[g,setG]=useState(fresh),[sel,setSel]=useState(null),[err,setErr]=useState(''),[who,setWho]=useState({}),[now,setNow]=useState(Date.now()),[fr,setFr]=useState(''),[botTick,setBotTick]=useState(0);
+  const [m,setM]=useState(null),[g,setG]=useState(fresh),[sel,setSel]=useState(null),[err,setErr]=useState(''),[who,setWho]=useState({}),[now,setNow]=useState(Date.now()),[fr,setFr]=useState(''),[botTick,setBotTick]=useState(0),[botMsg,setBotMsg]=useState('');
   const aud=useAudio();
   const {byId}=useCatalog();
   const busy=useRef(false),reported=useRef(false),lastClaim=useRef(0),botBusy=useRef(false);
@@ -84,13 +84,16 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
   useEffect(()=>{
     if(!botOpp||!playing||g.result||turnColor===myColor||botBusy.current)return;
     const ply=g.past.length,board=g.board,turn=g.turn;
-    botBusy.current=true;
+    botBusy.current=true;setBotMsg('Bot đang nghĩ…');
     const t=setTimeout(async()=>{
-      const mv=bestMove(board,turn,BOT_LEVEL);
-      if(!mv){botBusy.current=false;return;}
-      const {error}=await sb.rpc('bot_move',{p_match:matchId,p_ply:ply,p_fx:mv[0][0],p_fy:mv[0][1],p_tx:mv[1][0],p_ty:mv[1][1]});
-      botBusy.current=false;
-      if(error){setErr(error.message);load(true);setTimeout(()=>setBotTick(x=>x+1),2000);}else load();
+      try{
+        const mv=bestMove(board,turn,BOT_LEVEL);
+        if(!mv){setBotMsg('Bot không còn nước đi hợp lệ.');botBusy.current=false;return;}
+        const {error}=await sb.rpc('bot_move',{p_match:matchId,p_ply:ply,p_fx:mv[0][0],p_fy:mv[0][1],p_tx:mv[1][0],p_ty:mv[1][1]});
+        botBusy.current=false;
+        if(error){console.error('bot_move lỗi:',error);setBotMsg('Bot gặp lỗi: '+error.message+' (tự thử lại sau 2 giây)');load(true);setTimeout(()=>setBotTick(x=>x+1),2000);}
+        else{setBotMsg('');load();}
+      }catch(e){console.error('bot lỗi:',e);setBotMsg('Bot gặp lỗi: '+(e?.message||e));botBusy.current=false;}
     },botDelay());
     return()=>{clearTimeout(t);botBusy.current=false;};
   },[botOpp,playing,g.result,g.past.length,turnColor,myColor,matchId,load,botTick]);
@@ -154,6 +157,7 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
     </div>
     {playing&&<div className={'clock '+(secs<=20?'low':'')}>{myTurn?'Thời gian của bạn':'Thời gian đối thủ'}: <b>{Math.floor(secs/60)}:{String(secs%60).padStart(2,'0')}</b></div>}
     {err&&<p className="warn" style={{textAlign:'center'}}>{err}</p>}
+    {botOpp&&playing&&!g.result&&turnColor!==myColor&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <button className="secondary" onClick={()=>setBotTick(x=>x+1)}>Gọi bot đi</button></p>}
     <div className="gameactions"><button className="secondary" onClick={resign} disabled={!playing}><Flag size={16}/> Xin thua</button></div>
     <p className="hint">Mỗi nước đi có 150 giây. Hết giờ sẽ bị xử thua. Ván online không có đi lại.</p>
   </main>;
