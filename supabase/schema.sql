@@ -61,6 +61,7 @@ alter table public.profiles add column if not exists coins int not null default 
 alter table public.profiles add column if not exists win_streak int not null default 0 check (win_streak>=0);  -- chuỗi thắng Rank hiện tại
 alter table public.profiles add column if not exists equipped jsonb not null default '{}'::jsonb;              -- {avatar,avatar_frame,name_frame,board} = id vật phẩm đang dùng
 alter table public.profiles add column if not exists is_admin boolean not null default false;
+alter table public.profiles add column if not exists is_bot boolean not null default false;   -- tài khoản bot (ghép khi không có người chơi sau 8 giây)
 alter table public.matches add column if not exists red_coin_delta int not null default 0;
 alter table public.matches add column if not exists black_coin_delta int not null default 0;
 alter table public.matches add column if not exists red_streak int not null default 0;
@@ -257,6 +258,8 @@ language plpgsql security definer set search_path=public as $$
 declare m public.matches; rr int; br int; ea numeric; sr numeric;
   d_r int:=0; d_b int:=0; k_r numeric:=0; k_b numeric:=0; pay_r numeric:=0; pay_b numeric:=0;
   bm numeric:=1; st_r int:=0; st_b int:=0; c_r int:=0; c_b int:=0; rc_r int:=0; rc_b int:=0;
+  rb boolean:=false; bb boolean:=false; reward_ok boolean:=true;   -- rb/bb: bên Đỏ/Đen là bot
+  bot_full_rewards constant boolean:=false;   -- false: ván với bot KHÔNG thưởng Thy Mây, không đổi chuỗi thắng, không tính BXH tuần. true: tính như ván thường
   coin_min_plies constant int:=6;
   week_min_plies constant int:=6;   -- ván Luyện Khí dưới số nước này không tính vào bảng xếp hạng tuần (chống đổi Khí bằng cách xin thua ngay)
   ws date:=public._week_start();
@@ -264,9 +267,15 @@ begin
   select * into m from public.matches where id=p_match for update;
   if not found or m.status<>'playing' then return; end if;
 
+  select is_bot into rb from public.profiles where id=m.red_id;
+  select is_bot into bb from public.profiles where id=m.black_id;
+  reward_ok:=(not (coalesce(rb,false) or coalesce(bb,false))) or bot_full_rewards;
+
   if m.mode='ranked' or (m.mode='room' and m.rated) then   -- phòng riêng có bật "tính Rank" cũng tính Elo
     select rating,win_streak into rr,st_r from public.profiles where id=m.red_id;
     select rating,win_streak into br,st_b from public.profiles where id=m.black_id;
+    if rb then rr:=coalesce(m.red_rating,rr); end if;     -- bot dùng điểm Rank đã gán lúc ghép trận
+    if bb then br:=coalesce(m.black_rating,br); end if;
     ea:=1/(1+power(10,(br-rr)/400.0));
     sr:=case p_winner when 'red' then 1 when 'black' then 0 else 0.5 end;
     d_r:=round(32*(sr-ea));
@@ -283,9 +292,11 @@ begin
       d_b:=round(d_b*bm);
     end if;
     -- Chuỗi thắng & Thy Mây
-    if p_winner='red' then st_r:=st_r+1; st_b:=0;
-    elsif p_winner='black' then st_b:=st_b+1; st_r:=0; end if;
-    if m.ply>=coin_min_plies then
+    if reward_ok then
+      if p_winner='red' then st_r:=st_r+1; st_b:=0;
+      elsif p_winner='black' then st_b:=st_b+1; st_r:=0; end if;
+    end if;
+    if reward_ok and m.ply>=coin_min_plies then
       c_r:=case when p_winner='red' and st_r>=3 then 2 else 1 end;
       c_b:=case when p_winner='black' and st_b>=3 then 2 else 1 end;
     end if;
@@ -321,30 +332,34 @@ begin
     wins=wins+case when p_winner='red' then 1 else 0 end,
     losses=losses+case when p_winner='black' then 1 else 0 end,
     draws=draws+case when p_winner is null then 1 else 0 end
-  where id=m.red_id;
+  where id=m.red_id and not coalesce(rb,false);
   update public.profiles set rating=rating+d_b, khi=khi+pay_b,
     win_streak=case when m.mode='ranked' then st_b else win_streak end,
     wins=wins+case when p_winner='black' then 1 else 0 end,
     losses=losses+case when p_winner='red' then 1 else 0 end,
     draws=draws+case when p_winner is null then 1 else 0 end
-  where id=m.black_id;
+  where id=m.black_id and not coalesce(bb,false);
 
   -- Bảng xếp hạng tuần: cộng Khí lời/lỗ ròng của trận Luyện Khí (đã gồm thẻ Khí)
-  if m.mode='khi' and m.ply>=week_min_plies then
+  if m.mode='khi' and m.ply>=week_min_plies and reward_ok then
+    if not coalesce(rb,false) then
     insert into public.weekly_khi(user_id,week_start,gained,games,wins)
       values(m.red_id,ws,k_r,1,case when p_winner='red' then 1 else 0 end)
       on conflict (user_id,week_start) do update
       set gained=public.weekly_khi.gained+excluded.gained,games=public.weekly_khi.games+1,
           wins=public.weekly_khi.wins+excluded.wins,updated_at=now();
+    end if;
+    if not coalesce(bb,false) then
     insert into public.weekly_khi(user_id,week_start,gained,games,wins)
       values(m.black_id,ws,k_b,1,case when p_winner='black' then 1 else 0 end)
       on conflict (user_id,week_start) do update
       set gained=public.weekly_khi.gained+excluded.gained,games=public.weekly_khi.games+1,
           wins=public.weekly_khi.wins+excluded.wins,updated_at=now();
+    end if;
   end if;
 
-  if m.mode='ranked' and c_r>0 then perform public._add_coins(m.red_id,c_r,'ranked','Trận Rank'||case when p_winner='red' and st_r>=3 then ' • chuỗi thắng '||st_r||' (x2)' else '' end); end if;
-  if m.mode='ranked' and c_b>0 then perform public._add_coins(m.black_id,c_b,'ranked','Trận Rank'||case when p_winner='black' and st_b>=3 then ' • chuỗi thắng '||st_b||' (x2)' else '' end); end if;
+  if m.mode='ranked' and c_r>0 and not coalesce(rb,false) then perform public._add_coins(m.red_id,c_r,'ranked','Trận Rank'||case when p_winner='red' and st_r>=3 then ' • chuỗi thắng '||st_r||' (x2)' else '' end); end if;
+  if m.mode='ranked' and c_b>0 and not coalesce(bb,false) then perform public._add_coins(m.black_id,c_b,'ranked','Trận Rank'||case when p_winner='black' and st_b>=3 then ' • chuỗi thắng '||st_b||' (x2)' else '' end); end if;
 
   if rc_r>0 then perform public._add_coins(m.red_id,rc_r,'room_payout',case when p_winner='red' then 'Thắng cược phòng riêng' else 'Hoàn cược phòng riêng (hòa)' end); end if;
   if rc_b>0 then perform public._add_coins(m.black_id,rc_b,'room_payout',case when p_winner='black' then 'Thắng cược phòng riêng' else 'Hoàn cược phòng riêng (hòa)' end); end if;
@@ -364,6 +379,8 @@ create or replace function public.find_match(p_mode text,p_bet int default 0) re
 language plpgsql security definer set search_path=public as $$
 declare uid uuid:=auth.uid(); me public.profiles; my_join timestamptz; opp record; mid uuid;
   red uuid; blk uuid; waited numeric; win_ int; move_seconds constant int:=150;
+  bot_wait_seconds constant int:=8;   -- chờ quá số giây này chưa có người thì ghép với bot
+  bot public.profiles; bot_rating int;
 begin
   if uid is null then raise exception 'Chưa đăng nhập'; end if;
   if p_mode not in ('casual','ranked','khi') then raise exception 'Chế độ không hợp lệ'; end if;
@@ -398,7 +415,22 @@ begin
          100 + 10*floor(extract(epoch from (now()-least(q.joined_at,my_join)))))  -- chờ càng lâu, biên độ Rank càng rộng
   order by q.joined_at limit 1;
 
-  if opp.user_id is null then return null; end if;
+  if opp.user_id is null then
+    -- Chưa có người chơi: sau bot_wait_seconds giây thì ghép thẳng với 1 bot, bot cược bằng mức cược của người chơi
+    if extract(epoch from (now()-my_join))<bot_wait_seconds then return null; end if;
+    select * into bot from public.profiles where is_bot order by random() limit 1;
+    if not found then return null; end if;
+    bot_rating:=greatest(0,me.rating+floor(random()*81)::int-40);   -- điểm Rank của bot quanh điểm người chơi (±40)
+    if random()<0.5 then red:=uid; blk:=bot.id; else red:=bot.id; blk:=uid; end if;
+    insert into public.matches(red_id,black_id,mode,bet,deadline,red_rating,black_rating)
+    values(red,blk,p_mode,p_bet,now()+make_interval(secs=>move_seconds),
+           case when red=uid then me.rating else bot_rating end,
+           case when blk=uid then me.rating else bot_rating end)
+    returning id into mid;
+    if p_mode='khi' then update public.profiles set khi=khi-p_bet where id=uid; end if;   -- chỉ giữ cọc của người chơi, bot không cần cọc
+    delete from public.matchmaking_queue where user_id=uid;
+    return mid;
+  end if;
 
   if random()<0.5 then red:=uid; blk:=opp.user_id; else red:=opp.user_id; blk:=uid; end if;
   insert into public.matches(red_id,black_id,mode,bet,deadline,red_rating,black_rating)
@@ -436,6 +468,24 @@ begin
   update public.matches set ply=ply+1,deadline=now()+make_interval(secs=>move_seconds) where id=p_match;
 end $$;
 
+-- Nước đi của bot: client của người chơi tính nước (dùng engine.js) rồi gửi lên. Chỉ nhận khi đang tới lượt của bot.
+create or replace function public.bot_move(p_match uuid,p_ply int,p_fx int,p_fy int,p_tx int,p_ty int) returns void
+language plpgsql security definer set search_path=public as $$
+declare m public.matches; uid uuid:=auth.uid(); bot uuid; move_seconds constant int:=150;
+begin
+  select * into m from public.matches where id=p_match for update;
+  if not found then raise exception 'Không tìm thấy trận'; end if;
+  if uid is null or uid not in (m.red_id,m.black_id) then raise exception 'Bạn không thuộc trận này'; end if;
+  if m.status<>'playing' then raise exception 'Trận đã kết thúc'; end if;
+  if p_ply<>m.ply then raise exception 'Lệch nước đi, hãy tải lại'; end if;
+  bot:=case when m.ply%2=0 then m.red_id else m.black_id end;
+  if not exists(select 1 from public.profiles where id=bot and is_bot) then raise exception 'Chưa đến lượt bot'; end if;
+  if p_fx not between 0 and 8 or p_tx not between 0 and 8 or p_fy not between 0 and 9 or p_ty not between 0 and 9
+     or (p_fx=p_tx and p_fy=p_ty) then raise exception 'Nước đi không hợp lệ'; end if;
+  insert into public.match_moves(match_id,ply,fx,fy,tx,ty) values(p_match,p_ply,p_fx,p_fy,p_tx,p_ty);
+  update public.matches set ply=ply+1,deadline=now()+make_interval(secs=>move_seconds) where id=p_match;
+end $$;
+
 -- ---------- KẾT THÚC TRẬN ----------
 -- Xin thua: người gọi thua.
 create or replace function public.resign_match(p_match uuid) returns void
@@ -456,6 +506,8 @@ begin
   select * into m from public.matches where id=p_match for update;
   if not found or uid is null or uid not in (m.red_id,m.black_id) then raise exception 'Bạn không thuộc trận này'; end if;
   if m.status<>'playing' or now()<=m.deadline then return; end if;
+  -- Bot không bị xử thua vì hết giờ (bot chỉ đi khi người chơi đang mở ván)
+  if exists(select 1 from public.profiles where is_bot and id=case when m.ply%2=0 then m.red_id else m.black_id end) then return; end if;
   perform public._settle(p_match,case when m.ply%2=0 then 'black' else 'red' end,'Hết giờ');
 end $$;
 
@@ -470,7 +522,7 @@ begin
   if p_result not in ('win','draw') then raise exception 'Kết quả không hợp lệ'; end if;
   if m.ply<1 then raise exception 'Trận chưa có nước đi'; end if;
   mover:=case when m.ply%2=1 then m.red_id else m.black_id end;   -- người đi nước cuối
-  if uid<>mover then raise exception 'Chỉ bên vừa đi nước cuối được báo kết quả'; end if;
+  if uid<>mover and not exists(select 1 from public.profiles where id=mover and is_bot) then raise exception 'Chỉ bên vừa đi nước cuối được báo kết quả'; end if;   -- nếu bot vừa đi nước cuối thì người chơi báo thay
   perform public._settle(p_match,
     case when p_result='draw' then null when mover=m.red_id then 'red' else 'black' end,
     left(coalesce(p_reason,'Kết thúc theo luật'),80));
@@ -603,7 +655,7 @@ begin
   return query
     select p.id,p.username,u.email::text,p.khi,p.rating,p.coins,p.win_streak,p.wins,p.losses,p.draws,p.is_admin,p.created_at
     from public.profiles p join auth.users u on u.id=p.id
-    where coalesce(p_search,'')='' or p.username ilike '%'||p_search||'%' or u.email ilike '%'||p_search||'%'
+    where not p.is_bot and (coalesce(p_search,'')='' or p.username ilike '%'||p_search||'%' or u.email ilike '%'||p_search||'%')
     order by p.created_at desc
     limit least(greatest(p_limit,1),200);
 end $$;
@@ -899,6 +951,7 @@ begin
   select id into t from public.profiles where player_code=regexp_replace(coalesce(p_code,''),'\s','','g');
   if t is null then raise exception 'Không tìm thấy người chơi có ID này'; end if;
   if t=uid then raise exception 'Đây là ID của chính bạn'; end if;
+  if exists(select 1 from public.profiles where id=t and is_bot) then raise exception 'Đây là tài khoản bot, không thể kết bạn'; end if;
   lo:=case when uid<t then uid else t end; hi:=case when uid<t then t else uid end;
   select * into f from public.friendships where user_lo=lo and user_hi=hi for update;
   if found then
@@ -1201,8 +1254,8 @@ begin
     if m.draw then pay:=m.bet;
     else pay:=case m.places[s+1] when 1 then 2*m.bet when 2 then m.bet else 0 end; end if;
     kd[s+1]:=pay-m.bet;
-    update public.profiles set khi=khi+pay where id=m.players[s+1];
-    if c_weekly and m.ply>=c_weekly_min_plies then
+    update public.profiles set khi=khi+pay where id=m.players[s+1] and not is_bot;   -- bot không có ví
+    if c_weekly and m.ply>=c_weekly_min_plies and not exists(select 1 from public.profiles pb where pb.id=m.players[s+1] and pb.is_bot) then
       insert into public.weekly_khi(user_id,week_start,gained,games,wins)
         values(m.players[s+1],ws,kd[s+1],1,case when m.places[s+1]=1 then 1 else 0 end)
         on conflict (user_id,week_start) do update
@@ -1216,7 +1269,7 @@ end $$;
 -- Loại một ghế khỏi ván (bị ăn tướng, xin thua, hết giờ). Nếu chỉ còn một người thì chốt ván.
 create or replace function public._tam_out(p_id uuid,p_seat int,p_reason text) returns void
 language plpgsql security definer set search_path=public as $$
-declare m public.tam_matches; b text; i int; pls int[]; alive int; last_s int; nt int;
+declare m public.tam_matches; b text; i int; pls int[]; alive int; last_s int; nt int; hum_alive int; sg int; rk int;
   c_move_seconds constant int:=120;
 begin
   select * into m from public.tam_matches where id=p_id for update;
@@ -1227,7 +1280,15 @@ begin
     if substr(b,i*2+1,1)=p_seat::text then b:=overlay(b placing '..' from i*2+1 for 2); end if;
   end loop;
   select count(*) into alive from generate_series(1,3) g where pls[g]=0;
-  if alive=1 then
+  select count(*) into hum_alive from generate_series(1,3) g where pls[g]=0
+    and not exists(select 1 from public.profiles pr where pr.id=m.players[g] and pr.is_bot);
+  if alive>1 and hum_alive=0 then
+    -- Mọi người thật đã bị loại, chỉ còn bot đấu với nhau: chốt ván ngay (không ai được/mất Khí vì bot)
+    rk:=1;
+    for sg in 1..3 loop if pls[sg]=0 then pls[sg]:=rk; rk:=rk+1; end if; end loop;
+    update public.tam_matches set board=b,places=pls,elim=elim+1 where id=p_id;
+    perform public._tam_settle(p_id,p_reason||' (chỉ còn bot)');
+  elsif alive=1 then
     select g-1 into last_s from generate_series(1,3) g where pls[g]=0;
     pls[last_s+1]:=1;
     update public.tam_matches set board=b,places=pls,elim=elim+1 where id=p_id;
@@ -1248,6 +1309,8 @@ create or replace function public.find_tam(p_bet int) returns jsonb
 language plpgsql security definer set search_path=public as $$
 declare uid uuid:=auth.uid(); me public.profiles; mid uuid; others uuid[]; seats uuid[]; waiting int;
   c_move_seconds constant int:=120;
+  bot_wait_seconds constant int:=8;   -- chờ quá số giây này mà chưa đủ 3 người thì bot lấp ghế trống
+  my_join timestamptz; nbots int; bots uuid[];
 begin
   if uid is null then raise exception 'Chưa đăng nhập'; end if;
   if p_bet not in (500,1000,1500) then raise exception 'Mức cược không hợp lệ'; end if;
@@ -1267,6 +1330,7 @@ begin
   on conflict (user_id) do update set
     joined_at=case when public.tam_queue.bet=excluded.bet then public.tam_queue.joined_at else now() end,
     bet=excluded.bet,seen_at=now();
+  select joined_at into my_join from public.tam_queue where user_id=uid;
 
   select array_agg(t.user_id) into others from (
     select q.user_id from public.tam_queue q join public.profiles p on p.id=q.user_id
@@ -1274,12 +1338,19 @@ begin
       and not exists(select 1 from public.matches mm where mm.status='playing' and q.user_id in (mm.red_id,mm.black_id))
     order by q.joined_at limit 2) t;
   select count(*) into waiting from public.tam_queue where bet=p_bet;
-  if coalesce(array_length(others,1),0)<2 then return jsonb_build_object('waiting',waiting); end if;
+  if coalesce(array_length(others,1),0)<2 then
+    -- Chưa đủ người: sau bot_wait_seconds giây thì bot lấp các ghế còn trống (người thật vẫn được ưu tiên)
+    if extract(epoch from (now()-my_join))<bot_wait_seconds then return jsonb_build_object('waiting',waiting); end if;
+    nbots:=2-coalesce(array_length(others,1),0);
+    select array_agg(t.id) into bots from (select id from public.profiles where is_bot order by random() limit nbots) t;
+    if coalesce(array_length(bots,1),0)<nbots then return jsonb_build_object('waiting',waiting); end if;
+    others:=coalesce(others,'{}'::uuid[])||bots;
+  end if;
 
-  select array_agg(x order by random()) into seats from unnest(array[uid,others[1],others[2]]) x;
+  select array_agg(x order by random()) into seats from unnest(array_prepend(uid,others)) x;
   insert into public.tam_matches(players,bet,board,deadline)
   values(seats,p_bet,public._tam_initial(),now()+make_interval(secs=>c_move_seconds)) returning id into mid;
-  update public.profiles set khi=khi-p_bet where id=any(seats);      -- giữ cọc
+  update public.profiles set khi=khi-p_bet where id=any(seats) and not is_bot;      -- giữ cọc (bot không cần cọc)
   delete from public.tam_queue where user_id=any(seats);
   return jsonb_build_object('match',mid);
 end $$;
@@ -1291,20 +1362,18 @@ $$;
 
 -- Đi quân. Server kiểm tra: đúng lượt, quân của mình, không ăn quân mình, hình dạng nước đi theo loại quân, không đi lùi với tốt.
 -- (Chặn chân mã/mắt tượng, cung, sông và pháo ngồi do client kiểm tra, giống các chế độ khác.)
-create or replace function public.tam_move(p_match uuid,p_ply int,p_fx int,p_fy int,p_tx int,p_ty int) returns void
+create or replace function public._tam_do_move(p_match uuid,p_seat int,p_ply int,p_fx int,p_fy int,p_tx int,p_ty int,p_is_bot boolean default false) returns void
 language plpgsql security definer set search_path=public as $$
-declare m public.tam_matches; uid uuid:=auth.uid(); seat int; b text; fi int; ti int; fc text; tc text; pt text;
+declare m public.tam_matches; seat int:=p_seat; b text; fi int; ti int; fc text; tc text; pt text;
   dx int; dy int; ax int; ay int; ok boolean; victim int;
   c_move_seconds constant int:=120; c_max_ply constant int:=450;
 begin
   select * into m from public.tam_matches where id=p_match for update;
   if not found then raise exception 'Không tìm thấy trận'; end if;
-  seat:=array_position(m.players,uid)-1;
-  if uid is null or seat is null then raise exception 'Bạn không thuộc trận này'; end if;
   if m.status<>'playing' then raise exception 'Trận đã kết thúc'; end if;
   if p_ply<>m.ply then raise exception 'Lệch nước đi, hãy tải lại'; end if;
   if m.turn<>seat then raise exception 'Chưa đến lượt bạn'; end if;
-  if now()>m.deadline then raise exception 'Đã hết giờ'; end if;
+  if not p_is_bot and now()>m.deadline then raise exception 'Đã hết giờ'; end if;   -- bot không bị tính giờ ở đây
   if p_fx not between 0 and 12 or p_tx not between 0 and 12 or p_fy not between 0 and 12 or p_ty not between 0 and 12
      or (p_fx=p_tx and p_fy=p_ty) then raise exception 'Nước đi không hợp lệ'; end if;
   fi:=p_fy*13+p_fx; ti:=p_ty*13+p_tx;
@@ -1340,6 +1409,32 @@ begin
   end if;
 end $$;
 
+revoke all on function public._tam_do_move(uuid,int,int,int,int,int,int,boolean) from public,anon,authenticated;   -- hàm nội bộ, client không được gọi trực tiếp
+
+-- Người chơi đi quân của mình
+create or replace function public.tam_move(p_match uuid,p_ply int,p_fx int,p_fy int,p_tx int,p_ty int) returns void
+language plpgsql security definer set search_path=public as $$
+declare m public.tam_matches; uid uuid:=auth.uid(); seat int;
+begin
+  select * into m from public.tam_matches where id=p_match;
+  if not found then raise exception 'Không tìm thấy trận'; end if;
+  seat:=array_position(m.players,uid)-1;
+  if uid is null or seat is null then raise exception 'Bạn không thuộc trận này'; end if;
+  perform public._tam_do_move(p_match,seat,p_ply,p_fx,p_fy,p_tx,p_ty,false);
+end $$;
+
+-- Nước đi của bot: trình duyệt của một người chơi trong ván tính nước (tam.js) rồi gửi lên. Chỉ nhận khi đang tới lượt của bot.
+create or replace function public.tam_bot_move(p_match uuid,p_ply int,p_fx int,p_fy int,p_tx int,p_ty int) returns void
+language plpgsql security definer set search_path=public as $$
+declare m public.tam_matches; uid uuid:=auth.uid();
+begin
+  select * into m from public.tam_matches where id=p_match;
+  if not found or uid is null or array_position(m.players,uid) is null then raise exception 'Bạn không thuộc trận này'; end if;
+  if m.status<>'playing' then raise exception 'Trận đã kết thúc'; end if;
+  if not exists(select 1 from public.profiles where id=m.players[m.turn+1] and is_bot) then raise exception 'Chưa đến lượt bot'; end if;
+  perform public._tam_do_move(p_match,m.turn,p_ply,p_fx,p_fy,p_tx,p_ty,true);
+end $$;
+
 -- Xin thua (bất cứ lúc nào, không cần đến lượt): người gọi bị loại.
 create or replace function public.tam_resign(p_match uuid) returns void
 language plpgsql security definer set search_path=public as $$
@@ -1360,6 +1455,8 @@ begin
   select * into m from public.tam_matches where id=p_match for update;
   if not found or uid is null or array_position(m.players,uid) is null then raise exception 'Bạn không thuộc trận này'; end if;
   if m.status<>'playing' or now()<=m.deadline then return; end if;
+  -- Bot thường đi trong vài giây; chỉ xử bot hết giờ khi quá hạn thêm 20 giây (bot không có nước đi, hoặc không ai còn mở ván)
+  if exists(select 1 from public.profiles where id=m.players[m.turn+1] and is_bot) and now()<=m.deadline+interval '20 seconds' then return; end if;
   perform public._tam_out(p_match,m.turn,public._tam_seatname(m.turn)||' hết giờ');
 end $$;
 
@@ -1373,10 +1470,33 @@ language sql stable security definer set search_path=public as $$
   order by m.created_at desc limit least(greatest(p_limit,1),50);
 $$;
 
+-- ---------- TÀI KHOẢN BOT ----------
+-- Bot là tài khoản Auth không có mật khẩu (không ai đăng nhập được), có hồ sơ đánh dấu is_bot=true.
+-- Muốn thêm/bớt bot: sửa mảng tên bên dưới rồi chạy lại (bot đã có thì bỏ qua, không xóa bot cũ).
+do $$ declare i int; uid uuid; em text;
+  names text[]:=array['🤖 Bot Lão Tướng','🤖 Bot Kỳ Vương','🤖 Bot Sơn Hà','🤖 Bot Tiểu Mã','🤖 Bot Xa Thần',
+                      '🤖 Bot Pháo Thủ','🤖 Bot Thanh Long','🤖 Bot Bạch Hổ','🤖 Bot Trúc Lâm','🤖 Bot Phong Vân'];
+begin
+  for i in 1..array_length(names,1) loop
+    em:='bot'||lpad(i::text,2,'0')||'@bot.invalid';
+    uid:=null;
+    select id into uid from auth.users where email=em;
+    if uid is null then
+      uid:=gen_random_uuid();
+      insert into auth.users(instance_id,id,aud,role,email,encrypted_password,email_confirmed_at,
+        raw_app_meta_data,raw_user_meta_data,created_at,updated_at,confirmation_token,recovery_token,email_change_token_new,email_change)
+      values('00000000-0000-0000-0000-000000000000',uid,'authenticated','authenticated',em,'',now(),
+        '{"provider":"email","providers":["email"]}'::jsonb,'{}'::jsonb,now(),now(),'','','','');
+    end if;
+    insert into public.profiles(id,username) values(uid,names[i]) on conflict (id) do nothing;
+    update public.profiles set is_bot=true,username=names[i] where id=uid;
+  end loop;
+end $$;
+
 -- ---------- QUYỀN GỌI HÀM ----------
 do $$ declare f text; begin
   foreach f in array array[
-    'find_match(text,int)','cancel_queue()','make_move(uuid,int,int,int,int,int)',
+    'find_match(text,int)','cancel_queue()','make_move(uuid,int,int,int,int,int)','bot_move(uuid,int,int,int,int,int)',
     'resign_match(uuid)','claim_timeout(uuid)','finish_match(uuid,text,text)','my_history(int)',
     'weekly_leaderboard(int,int)',
     'buy_item(text)','use_boost(text)','equip_item(text)','unequip_slot(text)','is_admin()',
@@ -1386,7 +1506,7 @@ do $$ declare f text; begin
     'touch_presence()','send_friend_request(text)','accept_friend(uuid)','remove_friend(uuid)','my_friends()',
     'create_room(boolean,int,int,uuid)','room_info(text)','join_room(text)','room_status(uuid)','close_room(uuid)','my_room_invites()',
     'create_topup(int)','cancel_topup(bigint)','admin_list_topups(text,int)','admin_approve_topup(bigint)','admin_reject_topup(bigint,text)',
-    'find_tam(int)','cancel_tam()','tam_move(uuid,int,int,int,int,int)','tam_resign(uuid)','tam_claim_timeout(uuid)','my_tam_history(int)'
+    'find_tam(int)','cancel_tam()','tam_move(uuid,int,int,int,int,int)','tam_bot_move(uuid,int,int,int,int,int)','tam_resign(uuid)','tam_claim_timeout(uuid)','my_tam_history(int)'
   ] loop
     execute format('revoke all on function public.%s from public,anon',f);
     execute format('grant execute on function public.%s to authenticated',f);

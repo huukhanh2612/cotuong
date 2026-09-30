@@ -8,6 +8,29 @@
 
 > **Nâng cấp từ bản cũ:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu cũ), rồi `npm install` và `npm run dev`. Không có thư viện mới cần cài thêm.
 
+## Ghép trận với bot (khi ít người chơi) — gồm cả Tam đấu
+> **Nâng cấp:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu), rồi `npm run dev`. Không có thư viện mới. **Lưu ý khi sửa code:** phần bot nằm ở `src/bot.js`, `Lobby.jsx`, `OnlineGame.jsx`, `TamLobby.jsx`, `TamGame.jsx`, `tam.js` và các hàm `bot_move`, `tam_bot_move`, `find_match`, `find_tam` trong schema.sql. Nếu làm bản sau từ một bản cũ hơn thì bot sẽ biến mất.
+
+**Đấu 1 đối 1 (Đấu thường, Rank, Luyện Khí):**
+- Sau **8 giây** chưa có người cùng chế độ và cùng mức cược thì server ghép bạn với **1 bot**. Có người thật trong hàng chờ thì luôn ưu tiên người thật.
+- **Mức cược của bot bằng mức cược của bạn.** Luyện Khí: chỉ cọc Khí của người chơi; thắng nhận lời đúng bằng mức cược (có nhân thẻ Khí), thua mất cọc, hòa hoàn cọc. Rank: điểm Rank của bot được gán quanh điểm của bạn (±40) nên Elo thay đổi bình thường.
+
+**Tam đấu (mới):**
+- Sau 8 giây chưa đủ 3 người cùng mức cược thì bot lấp các ghế trống (1 hoặc 2 bot). Người thật vẫn được ưu tiên, chỉ thiếu ghế nào mới có bot vào ghế đó.
+- Chỉ người thật bị giữ cọc. Nhất nhận lại cược + lời đúng bằng mức cược, Nhì hoàn cược, Ba mất cược, giống luật thường. Bot không có ví nên không nhận hay mất Khí.
+- Bot Tam đấu dùng AI nhìn trước 1 nước (hàm `botPickTam` trong `src/tam.js`): ăn tướng khi có thể, tránh để tướng mình bị ăn ngay, thích ăn quân giá trị, tránh đưa quân vào ô bị ăn, cứu quân bị đe dọa. Muốn mạnh hơn, sửa hàm này.
+- Nếu mọi người thật đã bị loại, chỉ còn bot với nhau thì ván chốt ngay (không ai thắng/thua Khí), để không kẹt ván.
+
+**Chung cho cả hai:**
+- Bot có tên bắt đầu bằng 🤖 và ghi rõ **Bot** ở khung người chơi. Bot không kết bạn được, không nằm trong Quản trị, không lên bảng xếp hạng.
+- 10 bot được tạo tự động khi chạy `schema.sql` (tài khoản Auth không mật khẩu, `profiles.is_bot=true`). Muốn đổi tên/số lượng: sửa mảng `names` trong mục *TÀI KHOẢN BOT* rồi chạy lại.
+- **Bot đi quân thế nào:** trình duyệt của người chơi tính nước bằng AI rồi gửi lên server (`bot_move` cho 1 đối 1, `tam_bot_move` cho Tam đấu). Bot nghĩ 0,7–2 giây mỗi nước. Độ mạnh bot 1 đối 1 chỉnh ở `BOT_LEVEL` trong `src/bot.js` (1 yếu, 2 vừa, 3 mạnh nhưng chậm).
+- **Hết giờ:** ở 1 đối 1, bot không bị xử thua vì hết giờ; nếu người chơi rời trang lúc tới lượt bot thì ván chờ, quay lại là bot đi tiếp. Ở Tam đấu, bot chỉ bị loại vì hết giờ khi quá hạn thêm 20 giây (ví dụ bot không còn nước đi).
+- **Phần thưởng khi đấu bot** (mặc định để chống cày): ván Rank với bot vẫn đổi Elo nhưng **không nhận Thy Mây, không đổi chuỗi thắng**; ván Luyện Khí và Tam đấu với bot vẫn ăn/mất Khí nhưng **không tính bảng xếp hạng tuần**. Muốn tính như ván thường, đặt `bot_full_rewards` thành `true` trong hàm `_settle`.
+- Đổi số giây chờ: hằng số `bot_wait_seconds` trong `find_match` và `find_tam` (schema.sql) **và** `BOT_WAIT_SECONDS` trong `src/bot.js` (chỉ để hiện thông báo).
+- **Khí từ bot:** bot không đặt cọc thật nên khi bạn thắng bot, phần Khí lời là Khí mới sinh ra, không lấy từ người chơi nào. Nếu lo lạm phát Khí, hạ mức lời khi thắng bot hoặc giữ bot ở mức yếu/vừa.
+- **Chưa kiểm tra:** phần bot chưa được chạy thử trên trình duyệt hay Supabase thật. Nếu SQL hoặc giao diện báo lỗi, gửi nguyên thông báo lỗi để sửa.
+
 ## Giai đoạn 5 — ID, bạn bè, phòng riêng
 > **Nâng cấp từ giai đoạn 4:** chạy lại toàn bộ `supabase/schema.sql` trong SQL Editor (an toàn, không mất dữ liệu; tài khoản cũ được cấp ID tự động), rồi `npm install` và `npm run dev`. Không có thư viện mới.
 
@@ -176,3 +199,4 @@ Cấp độ tính từ Khí hiện có nên thua cược thì có thể tụt b�
 - Server kiểm tra lượt đi, thứ tự, hết giờ và tính điểm, **nhưng chưa kiểm tra luật đi quân** (việc đó do client). Người dùng rành kỹ thuật có thể gửi nước đi sai luật. Muốn chặt hơn: đưa `engine.js` vào Supabase Edge Function để xác thực từng nước.
 - Bên vừa đi nước cuối tự báo chiếu bí/hòa. Nếu bên đó thoát ngay, ván sẽ kết thúc bằng hết giờ.
 - Người chơi hết Khí (dưới 2) sẽ không vào được Luyện Khí; vẫn chơi được đấu thường và Rank.
+- **Nước đi của bot do trình duyệt người chơi gửi lên** (server chỉ kiểm tra bot đang tới lượt, và ở Tam đấu kiểm tra thêm hình dạng nước đi). Người rành kỹ thuật có thể gọi `bot_move` / `tam_bot_move` để điều khiển bot thua và cày Khí. Muốn chặn hẳn, cần chuyển việc tính nước bot sang Supabase Edge Function.

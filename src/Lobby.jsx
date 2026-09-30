@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {Swords,Trophy,Wind,Loader2} from 'lucide-react';
 import {sb} from './supabase.js';
 import {BETS,MODES,khiInfo,fmt,tierOf} from './khi.js';
+import {BOT_WAIT_SECONDS} from './bot.js';
 
 const INFO={
   casual:{icon:<Swords/>,text:'Ván giao hữu, không ảnh hưởng điểm Rank hay Khí.'},
@@ -26,8 +27,9 @@ export default function Lobby({profile,initialMode='casual',onMatch,onBack}){
       if(data){stop=true;onMatch(data);}
     };
     tick();
-    const poll=setInterval(tick,3000),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
-    return()=>{stop=true;clearInterval(poll);clearInterval(clock);sb.rpc('cancel_queue').then(()=>{});};
+    // Thăm dò 2 giây/lần + 1 lần nữa ngay sau mốc 8 giây để server ghép bot đúng lúc
+    const poll=setInterval(tick,2000),late=setTimeout(tick,BOT_WAIT_SECONDS*1000+300),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
+    return()=>{stop=true;clearInterval(poll);clearTimeout(late);clearInterval(clock);sb.rpc('cancel_queue').then(()=>{});};
   },[searching]);
 
   const start=()=>{setErr('');setSecs(0);setSearching(true);};
@@ -38,7 +40,7 @@ export default function Lobby({profile,initialMode='casual',onMatch,onBack}){
       <h2>Đang tìm đối thủ…</h2>
       <p className="muted">{MODES[mode]}{mode==='khi'?` • cược ${fmt(bet)} Khí`:''}{mode==='ranked'?` • Rank ${profile.rating} (${tierOf(profile.rating)})`:''}</p>
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
-      <p className="hint">Giữ trang này mở. Khi có người cùng chế độ, ván đấu sẽ tự bắt đầu.</p>
+      <p className="hint">Giữ trang này mở. Khi có người cùng chế độ, ván đấu sẽ tự bắt đầu. Nếu sau {BOT_WAIT_SECONDS} giây chưa có người, bạn sẽ được ghép với bot (cùng mức cược).</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
     </section></main>;
 

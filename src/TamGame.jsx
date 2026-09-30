@@ -2,7 +2,8 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Flag} from 'lucide-react';
 import {sb} from './supabase.js';
 import TamBoard from './TamBoard.jsx';
-import {parseBoard,movesFrom,countPieces,totalPieces,SEAT,PLACE_NAME,MAX_PLY} from './tam.js';
+import {parseBoard,movesFrom,countPieces,totalPieces,botPickTam,SEAT,PLACE_NAME,MAX_PLY} from './tam.js';
+import {botDelay} from './bot.js';
 import {useAudio,setAudio,sfx} from './audio.js';
 import {fmt} from './khi.js';
 import {Avatar,PlayerName,useCatalog} from './ui.jsx';
@@ -11,7 +12,7 @@ import {frameStyle} from './cosmetics.js';
 const sign=n=>(n>0?'+':'')+fmt(n);
 
 export default function TamGame({matchId,userId,onExit,onAgain}){
-  const [m,setM]=useState(null),[who,setWho]=useState({}),[sel,setSel]=useState(null),[err,setErr]=useState(''),[now,setNow]=useState(Date.now());
+  const [m,setM]=useState(null),[who,setWho]=useState({}),[sel,setSel]=useState(null),[err,setErr]=useState(''),[now,setNow]=useState(Date.now()),[botRetry,setBotRetry]=useState(0);
   const aud=useAudio();
   const {byId}=useCatalog();
   const busy=useRef(false),lastClaim=useRef(0),prev=useRef(null),doneSnd=useRef(false);
@@ -25,7 +26,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
 
   useEffect(()=>{
     if(!m||who.loaded)return;
-    sb.from('profiles').select('id,username,rating,khi,equipped,player_code').in('id',m.players).then(({data})=>{
+    sb.from('profiles').select('id,username,rating,khi,equipped,player_code,is_bot').in('id',m.players).then(({data})=>{
       const o={loaded:true};(data||[]).forEach(p=>o[p.id]=p);setWho(o);});
   },[m,who.loaded]);
 
@@ -63,9 +64,28 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
   const secs=m?Math.max(0,Math.ceil((new Date(m.deadline).getTime()-now)/1000)):0;
   useEffect(()=>{
     if(!playing||secs>0||Date.now()-lastClaim.current<4000)return;
+    // Tới lượt bot thì chờ quá hạn thêm 25 giây mới xử (bình thường bot đi trong vài giây)
+    if(who[m.players[m.turn]]?.is_bot&&Date.now()-new Date(m.deadline).getTime()<25000)return;
     lastClaim.current=Date.now();
     sb.rpc('tam_claim_timeout',{p_match:matchId}).then(()=>load());
-  },[secs,playing,matchId,load]);
+  },[secs,playing,matchId,load,now]);
+
+  // Bot đi quân: trình duyệt của mỗi người chơi trong ván (kể cả người đã bị loại) tính nước cho bot đang tới lượt rồi gửi lên.
+  // Nếu hai người cùng gửi thì server chỉ nhận một, lỗi "lệch nước" bị bỏ qua.
+  useEffect(()=>{
+    if(!m||!board||m.status!=='playing'||!who.loaded||!who[m.players[m.turn]]?.is_bot)return;
+    const ply=m.ply,turn=m.turn,places=m.places,bd=board;
+    let dead=false;
+    const t=setTimeout(async()=>{
+      const mv=botPickTam(bd,turn,places);
+      if(!mv||dead)return;
+      const {error}=await sb.rpc('tam_bot_move',{p_match:matchId,p_ply:ply,p_fx:mv[0][0],p_fy:mv[0][1],p_tx:mv[1][0],p_ty:mv[1][1]});
+      if(dead)return;
+      load();
+      if(error&&!/Lệch|lệch|Trận đã|Chưa đến lượt/.test(error.message))setTimeout(()=>setBotRetry(x=>x+1),2000);   // lỗi mạng: thử lại
+    },botDelay()+Math.floor(Math.random()*500));
+    return()=>{dead=true;clearTimeout(t);};
+  },[m?.ply,m?.turn,m?.status,who.loaded,matchId,botRetry]);
 
   const play=async(f,t)=>{
     if(busy.current)return;busy.current=true;setSel(null);setErr('');
@@ -107,7 +127,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
         return <div key={s} className={'tamp'+(turn?' turn':'')+(out?' out':'')} style={{borderColor:turn?SEAT[s].tint:undefined}}>
           <Avatar p={p} size={26}/>
           <div><b><i className="dot" style={{background:SEAT[s].tint}}/><PlayerName p={p} fallback="…"/>{s===seat?' (bạn)':''}</b>
-            <small>{SEAT[s].name} • {out?`Hạng ${PLACE_NAME[m.places[s]]}`:`${countPieces(board,s)} quân`}{turn?' • Đang đi':''}</small></div></div>;})}</div>
+            <small>{SEAT[s].name}{p?.is_bot?' • Bot':''} • {out?`Hạng ${PLACE_NAME[m.places[s]]}`:`${countPieces(board,s)} quân`}{turn?' • Đang đi':''}</small></div></div>;})}</div>
       <div className="boardframe" style={frameStyle(theme)}>
         <TamBoard board={board} seat={seat} sel={sel} targets={targets} onPick={pick} last={m.last_move} theme={theme} turnSeat={playing?m.turn:-1}/>
         {finished&&<div className="overlay"><div className="resultcard"><span className="seal big">{m.draw?'和':myPlace===1?'勝':myPlace===2?'次':'敗'}</span>

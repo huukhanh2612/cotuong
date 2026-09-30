@@ -68,3 +68,51 @@ export function movesFrom(b,x,y){
   }
   return out;
 }
+
+// ---- Bot Tam đấu ----
+// AI đơn giản (nhìn trước 1 nước): ăn tướng nếu được; tránh để tướng mình bị ăn ngay; thích ăn quân giá trị, tránh đưa quân vào ô bị ăn,
+// cứu quân đang bị đe dọa, và tiến dần về phía tướng đối thủ. Có chút ngẫu nhiên để các ván không giống nhau.
+const VAL={r:9,c:4.5,n:4,b:2,a:2,p:1,k:1000};
+const applyLocal=(b,f,t)=>{const n=b.map(r=>r.slice());n[t[1]][t[0]]=n[f[1]][f[0]];n[f[1]][f[0]]=null;return n;};
+// Các ô mà một quân của ghế `seat` đứng đó sẽ bị ăn ngay bởi đối thủ còn sống (đối thủ = ghế khác, chưa bị loại)
+function attacked(b,seat,places){
+  const set=new Set();
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const c=b[y][x];if(!c)continue;const s=+c[0];
+    if(s===seat||places[s]!==0)continue;
+    for(const [a,d] of movesFrom(b,x,y))if(b[d][a]&&+b[d][a][0]===seat)set.add(a+','+d);
+  }
+  return set;
+}
+const findKing=(b,seat)=>{for(let y=0;y<N;y++)for(let x=0;x<N;x++)if(b[y][x]===seat+'k')return [x,y];return null;};
+const nearestEnemyKingDist=(b,seat,places,x,y)=>{
+  let best=99;
+  for(let s=0;s<3;s++){if(s===seat||places[s]!==0)continue;const k=findKing(b,s);if(k)best=Math.min(best,Math.abs(k[0]-x)+Math.abs(k[1]-y));}
+  return best;
+};
+// Trả về [[fx,fy],[tx,ty]] hoặc null nếu không còn nước đi.
+export function botPickTam(board,seat,places){
+  const cur=attacked(board,seat,places);
+  const moves=[];
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const c=board[y][x];if(!c||+c[0]!==seat)continue;
+    for(const t of movesFrom(board,x,y))moves.push([[x,y],t]);
+  }
+  if(!moves.length)return null;
+  let best=null,bs=-Infinity,safeBest=null,safeScore=-Infinity;
+  for(const [f,t] of moves){
+    const mover=board[f[1]][f[0]],cap=board[t[1]][t[0]];
+    if(cap&&cap[1]==='k')return [f,t];                       // ăn được tướng: loại đối thủ ngay
+    const nb=applyLocal(board,f,t),att=attacked(nb,seat,places);
+    const myKing=findKing(nb,seat);
+    const kingDanger=myKing&&att.has(myKing[0]+','+myKing[1]);
+    let sc=cap?VAL[cap[1]]:0;
+    if(att.has(t[0]+','+t[1]))sc-=VAL[mover[1]]*0.9;          // quân vừa đi có thể bị ăn
+    if(cur.has(f[0]+','+f[1]))sc+=VAL[mover[1]]*0.8;          // cứu quân đang bị đe dọa
+    sc+=0.05*(nearestEnemyKingDist(board,seat,places,f[0],f[1])-nearestEnemyKingDist(nb,seat,places,t[0],t[1]));
+    sc+=Math.random()*0.35;
+    if(kingDanger)sc-=500;                                    // tuyệt đối tránh để tướng bị ăn ngay
+    if(sc>bs){bs=sc;best=[f,t];}
+  }
+  return best;
+}

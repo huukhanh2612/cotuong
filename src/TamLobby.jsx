@@ -3,6 +3,7 @@ import {Loader2,Users} from 'lucide-react';
 import {sb} from './supabase.js';
 import {fmt,khiInfo} from './khi.js';
 import {TAM_BETS,PLACE_NAME,SEAT} from './tam.js';
+import {BOT_WAIT_SECONDS} from './bot.js';
 
 const when=t=>t?new Date(t).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
 const sign=n=>(n>0?'+':'')+fmt(n);
@@ -27,8 +28,8 @@ export default function TamLobby({profile,onMatch,onBack}){
       if(data?.waiting)setWaiting(data.waiting);
     };
     tick();
-    const poll=setInterval(tick,3000),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
-    return()=>{stop=true;clearInterval(poll);clearInterval(clock);sb.rpc('cancel_tam').then(()=>{});};
+    const poll=setInterval(tick,2000),late=setTimeout(tick,BOT_WAIT_SECONDS*1000+300),clock=setInterval(()=>setSecs(Math.floor((Date.now()-t0)/1000)),500);
+    return()=>{stop=true;clearInterval(poll);clearTimeout(late);clearInterval(clock);sb.rpc('cancel_tam').then(()=>{});};
   },[searching]);
 
   const start=()=>{setErr('');setSecs(0);setWaiting(1);setSearching(true);};
@@ -40,7 +41,7 @@ export default function TamLobby({profile,onMatch,onBack}){
       <div className="tamdots">{[0,1,2].map(i=><span key={i} className={i<waiting?'on':''}><Users size={18}/></span>)}</div>
       <p className="muted">Đã có <b>{Math.min(waiting,3)}/3</b> người</p>
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
-      <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu.</p>
+      <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu. Sau {BOT_WAIT_SECONDS} giây chưa đủ người, ghế trống sẽ do bot đảm nhận.</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
     </section></main>;
 
