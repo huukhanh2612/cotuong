@@ -2,7 +2,7 @@ import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import {Flag} from 'lucide-react';
 import {sb} from './supabase.js';
 import {isRed,legalMoves,inCheck,fresh,applyMove,bestMove} from './engine.js';
-import {BOT_LEVEL,botDelay} from './bot.js';
+import {BOT_LEVEL,botDelay,isBotProfile,BOT_BUILD} from './bot.js';
 import Board,{names} from './Board.jsx';
 import {useGameSounds} from './useGameSounds.js';
 import {useAudio,setAudio,sfx} from './audio.js';
@@ -36,8 +36,9 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
   useEffect(()=>{load(true);},[load]);
   useEffect(()=>{ // tên & điểm hai bên
     if(!m||who.loaded)return;
-    sb.from('profiles').select('id,username,rating,equipped,player_code,is_bot').in('id',[m.red_id,m.black_id]).then(({data})=>{
-      const o={loaded:true};(data||[]).forEach(p=>o[p.id]=p);setWho(o);});
+    sb.from('profiles').select('*').in('id',[m.red_id,m.black_id]).then(({data,error})=>{
+      if(error||!data||data.length<2){setErr('Không đọc được hồ sơ hai bên: '+(error?.message||'thiếu dữ liệu')+' (sẽ tự thử lại)');return;}
+      const o={loaded:true};data.forEach(p=>o[p.id]=p);setWho(o);});
   },[m,who.loaded]);
 
   useEffect(()=>{ // realtime + dự phòng thăm dò 3 giây
@@ -53,7 +54,7 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
   const myColor=m?(m.red_id===userId?'red':'black'):'red';
   const playing=m?.status==='playing';
   const turnColor=g.turn?'red':'black';
-  const botOpp=!!(m&&who[m.red_id===userId?m.black_id:m.red_id]?.is_bot);   // đối thủ là bot
+  const botOpp=!!(m&&isBotProfile(who[m.red_id===userId?m.black_id:m.red_id]));   // đối thủ là bot
   const myTurn=playing&&!g.result&&turnColor===myColor;
   const legal=useMemo(()=>legalMoves(g.board,g.turn),[g.board,g.turn]);
   const check=!g.result&&inCheck(g.board,g.turn);
@@ -128,7 +129,7 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
   const label=c=>c==='red'?'Đỏ':'Đen';
   const Tray=({list})=><div className="tray">{list.map((p,i)=><span key={i} className={'mini '+(isRed(p)?'r':'b')}>{names[p]}</span>)}</div>;
   const Side=({color,p,lost,rating})=><div className="player"><Avatar p={p} size={30} className={color==='red'?'red':''}/>
-    <div><b><PlayerName p={p} fallback="…"/>{color===myColor?' (bạn)':''}</b><small>{label(color)} • Rank {rating??p?.rating??'—'} ({tierOf(rating??p?.rating??0)}){p?.is_bot?' • Bot':''} {playing&&!g.result&&turnColor===color?'• Đang đi':''}</small></div><Tray list={lost}/></div>;
+    <div><b><PlayerName p={p} fallback="…"/>{color===myColor?' (bạn)':''}</b><small>{label(color)} • Rank {rating??p?.rating??'—'} ({tierOf(rating??p?.rating??0)}){isBotProfile(p)?' • Bot':''} {playing&&!g.result&&turnColor===color?'• Đang đi':''}</small></div><Tray list={lost}/></div>;
   const oppColor=myColor==='red'?'black':'red';
   // Kết bạn với đối thủ ngay sau ván (dùng ID của họ)
   const addFriend=async()=>{
@@ -157,7 +158,7 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
     </div>
     {playing&&<div className={'clock '+(secs<=20?'low':'')}>{myTurn?'Thời gian của bạn':'Thời gian đối thủ'}: <b>{Math.floor(secs/60)}:{String(secs%60).padStart(2,'0')}</b></div>}
     {err&&<p className="warn" style={{textAlign:'center'}}>{err}</p>}
-    {botOpp&&playing&&!g.result&&turnColor!==myColor&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <button className="secondary" onClick={()=>setBotTick(x=>x+1)}>Gọi bot đi</button></p>}
+    {botOpp&&playing&&!g.result&&turnColor!==myColor&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <small>({BOT_BUILD})</small> <button className="secondary" onClick={()=>setBotTick(x=>x+1)}>Gọi bot đi</button></p>}
     <div className="gameactions"><button className="secondary" onClick={resign} disabled={!playing}><Flag size={16}/> Xin thua</button></div>
     <p className="hint">Mỗi nước đi có 150 giây. Hết giờ sẽ bị xử thua. Ván online không có đi lại.</p>
   </main>;

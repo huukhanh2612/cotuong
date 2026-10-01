@@ -3,7 +3,7 @@ import {Flag} from 'lucide-react';
 import {sb} from './supabase.js';
 import TamBoard from './TamBoard.jsx';
 import {parseBoard,movesFrom,countPieces,totalPieces,botPickTam,SEAT,PLACE_NAME,MAX_PLY} from './tam.js';
-import {botDelay} from './bot.js';
+import {botDelay,isBotProfile,BOT_BUILD} from './bot.js';
 import {useAudio,setAudio,sfx} from './audio.js';
 import {fmt} from './khi.js';
 import {Avatar,PlayerName,useCatalog} from './ui.jsx';
@@ -26,8 +26,9 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
 
   useEffect(()=>{
     if(!m||who.loaded)return;
-    sb.from('profiles').select('id,username,rating,khi,equipped,player_code,is_bot').in('id',m.players).then(({data})=>{
-      const o={loaded:true};(data||[]).forEach(p=>o[p.id]=p);setWho(o);});
+    sb.from('profiles').select('*').in('id',m.players).then(({data,error})=>{
+      if(error||!data||data.length<3){setErr('Không đọc được hồ sơ người chơi: '+(error?.message||'thiếu dữ liệu')+' (sẽ tự thử lại)');return;}
+      const o={loaded:true};data.forEach(p=>o[p.id]=p);setWho(o);});
   },[m,who.loaded]);
 
   useEffect(()=>{
@@ -65,7 +66,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
   useEffect(()=>{
     if(!playing||secs>0||Date.now()-lastClaim.current<4000)return;
     // Tới lượt bot thì chờ quá hạn thêm 25 giây mới xử (bình thường bot đi trong vài giây)
-    if(who[m.players[m.turn]]?.is_bot&&Date.now()-new Date(m.deadline).getTime()<25000)return;
+    if(isBotProfile(who[m.players[m.turn]])&&Date.now()-new Date(m.deadline).getTime()<25000)return;
     lastClaim.current=Date.now();
     sb.rpc('tam_claim_timeout',{p_match:matchId}).then(()=>load());
   },[secs,playing,matchId,load,now]);
@@ -73,7 +74,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
   // Bot đi quân: trình duyệt của mỗi người chơi trong ván (kể cả người đã bị loại) tính nước cho bot đang tới lượt rồi gửi lên.
   // Nếu hai người cùng gửi thì server chỉ nhận một, lỗi "lệch nước" bị bỏ qua.
   useEffect(()=>{
-    if(!m||!board||m.status!=='playing'||!who.loaded||!who[m.players[m.turn]]?.is_bot)return;
+    if(!m||!board||m.status!=='playing'||!who.loaded||!isBotProfile(who[m.players[m.turn]]))return;
     const ply=m.ply,turn=m.turn,places=m.places,bd=board;
     let dead=false;
     setBotMsg('Bot đang nghĩ…');
@@ -135,7 +136,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
         return <div key={s} className={'tamp'+(turn?' turn':'')+(out?' out':'')} style={{borderColor:turn?SEAT[s].tint:undefined}}>
           <Avatar p={p} size={26}/>
           <div><b><i className="dot" style={{background:SEAT[s].tint}}/><PlayerName p={p} fallback="…"/>{s===seat?' (bạn)':''}</b>
-            <small>{SEAT[s].name}{p?.is_bot?' • Bot':''} • {out?`Hạng ${PLACE_NAME[m.places[s]]}`:`${countPieces(board,s)} quân`}{turn?' • Đang đi':''}</small></div></div>;})}</div>
+            <small>{SEAT[s].name}{isBotProfile(p)?' • Bot':''} • {out?`Hạng ${PLACE_NAME[m.places[s]]}`:`${countPieces(board,s)} quân`}{turn?' • Đang đi':''}</small></div></div>;})}</div>
       <div className="boardframe" style={frameStyle(theme)}>
         <TamBoard board={board} seat={seat} sel={sel} targets={targets} onPick={pick} last={m.last_move} theme={theme} turnSeat={playing?m.turn:-1}/>
         {finished&&<div className="overlay"><div className="resultcard"><span className="seal big">{m.draw?'和':myPlace===1?'勝':myPlace===2?'次':'敗'}</span>
@@ -147,7 +148,7 @@ export default function TamGame({matchId,userId,onExit,onAgain}){
     </div>
     {playing&&<div className={'clock '+(secs<=20&&m.turn===seat?'low':'')}>{myTurn?'Thời gian của bạn':`Thời gian của ${turnName}`}: <b>{Math.floor(secs/60)}:{String(secs%60).padStart(2,'0')}</b></div>}
     {err&&<p className="warn" style={{textAlign:'center'}}>{err}</p>}
-    {playing&&who.loaded&&who[m.players[m.turn]]?.is_bot&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <button className="secondary" onClick={()=>setBotRetry(x=>x+1)}>Gọi bot đi</button></p>}
+    {playing&&who.loaded&&isBotProfile(who[m.players[m.turn]])&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <small>({BOT_BUILD})</small> <button className="secondary" onClick={()=>setBotRetry(x=>x+1)}>Gọi bot đi</button></p>}
     <div className="gameactions"><button className="secondary" onClick={resign} disabled={!playing||!alive}><Flag size={16}/> Xin thua</button></div>
     <p className="hint">Mỗi nước đi có 120 giây. Hết giờ sẽ bị loại. Không có luật chiếu tướng: ăn tướng là loại người đó. Nhất +{fmt(m.bet)} Khí, Nhì hòa vốn, Ba −{fmt(m.bet)} Khí.</p>
   </main>;

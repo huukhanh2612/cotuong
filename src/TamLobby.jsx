@@ -4,6 +4,7 @@ import {sb} from './supabase.js';
 import {fmt,khiInfo} from './khi.js';
 import {TAM_BETS,PLACE_NAME,SEAT} from './tam.js';
 import {BOT_WAIT_SECONDS} from './bot.js';
+import BotCheck from './BotCheck.jsx';
 
 const when=t=>t?new Date(t).toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
 const sign=n=>(n>0?'+':'')+fmt(n);
@@ -43,6 +44,7 @@ export default function TamLobby({profile,onMatch,onBack}){
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
       <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu. Sau {BOT_WAIT_SECONDS} giây chưa đủ người, ghế trống sẽ do bot đảm nhận.</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
+      <BotCheck/>
     </section></main>;
 
   return <main className="content lobby">
