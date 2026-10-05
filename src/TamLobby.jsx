@@ -42,7 +42,7 @@ export default function TamLobby({profile,onMatch,onBack}){
       <div className="tamdots">{[0,1,2].map(i=><span key={i} className={i<waiting?'on':''}><Users size={18}/></span>)}</div>
       <p className="muted">Đã có <b>{Math.min(waiting,3)}/3</b> người</p>
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
-      <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu. Sau {BOT_WAIT_SECONDS} giây chưa đủ người, ghế trống sẽ do bot đảm nhận.</p>
+      <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu.</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
       {profile?.is_admin&&<BotCheck/>}
     </section></main>;
