@@ -44,7 +44,7 @@ export default function TamLobby({profile,onMatch,onBack}){
       <div className="timer">{String(Math.floor(secs/60)).padStart(2,'0')}:{String(secs%60).padStart(2,'0')}</div>
       <p className="hint">Giữ trang này mở. Đủ 3 người cùng mức cược, ván đấu sẽ tự bắt đầu. Sau {BOT_WAIT_SECONDS} giây chưa đủ người, ghế trống sẽ do bot đảm nhận.</p>
       <button className="secondary" onClick={()=>setSearching(false)}>Hủy ghép trận</button>
-      <BotCheck/>
+      {profile?.is_admin&&<BotCheck/>}
     </section></main>;
 
   return <main className="content lobby">
