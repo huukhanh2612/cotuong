@@ -158,7 +158,7 @@ export default function OnlineGame({matchId,userId,onExit,onHistory}){
     </div>
     {playing&&<div className={'clock '+(secs<=20?'low':'')}>{myTurn?'Thời gian của bạn':'Thời gian đối thủ'}: <b>{Math.floor(secs/60)}:{String(secs%60).padStart(2,'0')}</b></div>}
     {err&&<p className="warn" style={{textAlign:'center'}}>{err}</p>}
-    {botOpp&&playing&&!g.result&&turnColor!==myColor&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <small>({BOT_BUILD})</small> <button className="secondary" onClick={()=>setBotTick(x=>x+1)}>Gọi bot đi</button></p>}
+    {botOpp&&playing&&!g.result&&turnColor!==myColor&&<p className="hint" style={{textAlign:'center'}}>{botMsg||'Đang chờ bot…'} <small>({BOT_BUILD})</small> <button className="secondary" onClick={()=>setBotTick(x=>x+1)}>Thúc đối thủ</button></p>}
     <div className="gameactions"><button className="secondary" onClick={resign} disabled={!playing}><Flag size={16}/> Xin thua</button></div>
     <p className="hint">Mỗi nước đi có 150 giây. Hết giờ sẽ bị xử thua. Ván online không có đi lại.</p>
   </main>;
